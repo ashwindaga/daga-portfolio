@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-07-08",
+  "as_of": "2026-07-10",
   "person": "Ashwin",
   "dob": null,
   "schemes": [
@@ -8,7 +8,7 @@
       "invested": 354986.83,
       "current_value": 651296.59,
       "abs_return_pct": 83.47063467115102,
-      "xirr_pct": 13.423928342870164,
+      "xirr_pct": 13.408215211469068,
       "category": "Hybrid - Aggressive",
       "amc": "Mirae Asset",
       "status": "closed",
@@ -23,7 +23,7 @@
       "invested": 232488.43,
       "current_value": 251026.11,
       "abs_return_pct": 7.973592492323163,
-      "xirr_pct": 7.938037226763218,
+      "xirr_pct": 7.893932305320151,
       "category": "Equity - Large & Midcap",
       "amc": "Mirae Asset",
       "status": "live",
@@ -38,7 +38,7 @@
       "invested": 299992.75,
       "current_value": 519416.45,
       "abs_return_pct": 93.1434843008706,
-      "xirr_pct": 12.534039913348632,
+      "xirr_pct": 12.523111539866877,
       "category": "Equity - Flexi Cap",
       "amc": "Motilal Oswal",
       "status": "closed",
@@ -53,9 +53,9 @@
     {
       "scheme": "Motilal Oswal Nifty 50 Index Fund - Direct Plan Growth",
       "invested": 217489.15,
-      "current_value": 247933.41,
-      "abs_return_pct": 13.998059213528588,
-      "xirr_pct": 11.071348693962008,
+      "current_value": 243531.0,
+      "abs_return_pct": 11.973861684594384,
+      "xirr_pct": 9.54472069452017,
       "category": "Equity - Index",
       "amc": "Motilal Oswal",
       "status": "live",
@@ -68,9 +68,9 @@
     {
       "scheme": "PGIM India Flexi Cap Fund - Direct Plan Growth",
       "invested": 352482.51,
-      "current_value": 411227.93,
-      "abs_return_pct": 16.66619430280384,
-      "xirr_pct": 9.318382688706055,
+      "current_value": 407896.22,
+      "abs_return_pct": 15.720981446710635,
+      "xirr_pct": 8.791035238473992,
       "category": "Equity - Flexi Cap",
       "amc": "PGIM India",
       "status": "live",
@@ -82,7 +82,7 @@
     }
   ],
   "total_invested": 1457439.67,
-  "total_current_value": 2080900.49,
-  "total_abs_return_pct": 42.777813231884934,
-  "total_xirr_pct": 12.357892346735255
+  "total_current_value": 2073166.3699999999,
+  "total_abs_return_pct": 42.24714838453656,
+  "total_xirr_pct": 12.22884941347844
 }
