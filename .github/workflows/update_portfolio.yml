@@ -1,0 +1,45 @@
+name: Monthly Portfolio Update
+
+on:
+  # Run automatically on the 8th of every month at 9:30am IST (4:00am UTC)
+  schedule:
+    - cron: '0 4 8 * *'
+
+  # Also allow manual trigger from GitHub website (useful for testing)
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # needed to commit updated files back to the repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests pyxirr
+
+      - name: Run SIP updater
+        run: python update_sips.py
+
+      - name: Commit and push updated files
+        run: |
+          git config user.name  "Portfolio Bot"
+          git config user.email "portfolio-bot@users.noreply.github.com"
+          git add daksh_transaction_ledger.json \
+                  kush_transaction_ledger.json \
+                  ashwin_transaction_ledger.json \
+                  daksh_metrics_summary.json \
+                  kush_metrics_summary.json \
+                  ashwin_metrics_summary.json \
+                  daga_family_portfolio.html
+          git diff --cached --quiet || git commit -m "Portfolio update $(date +'%Y-%m-%d')"
+          git push
