@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -26,17 +27,15 @@ jobs:
       - name: Install dependencies
         run: pip install requests pyxirr
 
-      - name: Pull latest changes before update
-        run: |
-          git config user.name  "Portfolio Bot"
-          git config user.email "portfolio-bot@users.noreply.github.com"
-          git pull --rebase origin main
-
       - name: Run SIP updater
         run: python update_sips.py
 
       - name: Commit and push updated files
         run: |
+          git config user.name  "Portfolio Bot"
+          git config user.email "portfolio-bot@users.noreply.github.com"
+          git fetch origin main
+          git rebase origin/main
           git add daksh_transaction_ledger.json \
                   kush_transaction_ledger.json \
                   ashwin_transaction_ledger.json \
@@ -45,4 +44,4 @@ jobs:
                   ashwin_metrics_summary.json \
                   daga_family_portfolio.html
           git diff --cached --quiet || git commit -m "Portfolio update $(date +'%Y-%m-%d')"
-          git push
+          git push origin main
