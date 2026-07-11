@@ -1,11 +1,8 @@
 name: Monthly Portfolio Update
 
 on:
-  # Run automatically on the 8th of every month at 9:30am IST (4:00am UTC)
   schedule:
     - cron: '0 4 8 * *'
-
-  # Also allow manual trigger from GitHub website (useful for testing)
   workflow_dispatch:
 
 jobs:
@@ -13,11 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write   # needed to commit updated files back to the repo
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # fetch full history so pull/push always works
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,6 +33,7 @@ jobs:
         run: |
           git config user.name  "Portfolio Bot"
           git config user.email "portfolio-bot@users.noreply.github.com"
+          git pull --rebase origin main
           git add daksh_transaction_ledger.json \
                   kush_transaction_ledger.json \
                   ashwin_transaction_ledger.json \
