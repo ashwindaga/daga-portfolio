@@ -15,9 +15,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -30,18 +27,15 @@ jobs:
       - name: Run SIP updater
         run: python update_sips.py
 
-      - name: Commit and push updated files
-        run: |
-          git config user.name  "Portfolio Bot"
-          git config user.email "portfolio-bot@users.noreply.github.com"
-          git fetch origin main
-          git rebase origin/main
-          git add daksh_transaction_ledger.json \
-                  kush_transaction_ledger.json \
-                  ashwin_transaction_ledger.json \
-                  daksh_metrics_summary.json \
-                  kush_metrics_summary.json \
-                  ashwin_metrics_summary.json \
-                  daga_family_portfolio.html
-          git diff --cached --quiet || git commit -m "Portfolio update $(date +'%Y-%m-%d')"
-          git push origin main
+      - name: Push updated files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Portfolio update ${{ github.run_id }}"
+          file_pattern: |
+            daksh_transaction_ledger.json
+            kush_transaction_ledger.json
+            ashwin_transaction_ledger.json
+            daksh_metrics_summary.json
+            kush_metrics_summary.json
+            ashwin_metrics_summary.json
+            daga_family_portfolio.html
