@@ -1,8 +1,6 @@
 """
 Daga Family Portfolio -- SIP Auto-Updater
 ==========================================
-Run this script monthly (or whenever you want to catch up).
-
 Usage:
   python update_sips.py                        # normal monthly SIP update
   python update_sips.py --lumpsum              # record a one-off lumpsum purchase
@@ -12,11 +10,6 @@ Usage:
 
 Requirements:
   pip install requests pyxirr
-
-All files must be in the same folder as this script:
-  daksh_transaction_ledger.json / kush_transaction_ledger.json / ashwin_transaction_ledger.json
-  daksh_metrics_summary.json / kush_metrics_summary.json / ashwin_metrics_summary.json
-  daga_family_portfolio.html
 """
 
 import json
@@ -29,10 +22,6 @@ from pyxirr import xirr as compute_xirr
 BASE_DIR = Path(__file__).parent
 
 # ── Live SIP Configuration ────────────────────────────────────────────────────
-# To stop a SIP:           set "active": False and add "stopped_after": "YYYY-MM-DD"
-# To change SIP amount:    add a new entry with same scheme + new sip_amount_gross + "effective_from": "YYYY-MM-DD"
-#                          and set "active": False on the old entry
-# To add a new SIP:        append a new dict below
 
 LIVE_SIPS = [
     {
@@ -169,16 +158,15 @@ METRICS_FILES = {
     "Ashwin": "ashwin_metrics_summary.json",
 }
 
-STAMP_DUTY_RATE = 0.00005  # 0.005%
+STAMP_DUTY_RATE = 0.00005
 _nav_cache = {}
 
 
 # ── NAV Fetching ──────────────────────────────────────────────────────────────
 
 def fetch_nav(amfi_scheme, nav_date):
-    """Fetch historical NAV from mfapi.in for a given scheme code and date.
-    If nav_date is a non-trading day, returns the next available trading day."""
-
+    """Fetch historical NAV from mfapi.in for a given scheme and date.
+    Returns (nav, actual_allotment_date) rolling forward for non-trading days."""
     cache_key = (amfi_scheme, nav_date)
     if cache_key in _nav_cache:
         return _nav_cache[cache_key]
@@ -187,14 +175,25 @@ def fetch_nav(amfi_scheme, nav_date):
     end   = (nav_date + timedelta(days=7)).strftime("%Y-%m-%d")
     url   = f"https://api.mfapi.in/mf/{amfi_scheme}?startDate={start}&endDate={end}"
 
-    resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-    resp.raise_for_status()
+    try:
+        resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+    except requests.exceptions.ConnectionError:
+        raise ValueError("No internet connection. Check your network and try again.")
+    except requests.exceptions.Timeout:
+        raise ValueError("mfapi.in timed out. Try again in a few minutes.")
+    except requests.exceptions.HTTPError as e:
+        raise ValueError(f"mfapi.in returned error: {e}")
 
-    data = resp.json()
+    try:
+        data = resp.json()
+    except Exception:
+        raise ValueError(f"mfapi.in returned invalid data for scheme {amfi_scheme}.")
+
     if data.get("status") != "SUCCESS" or not data.get("data"):
         raise ValueError(
-            f"No data from mfapi for scheme {amfi_scheme} between {start} and {end}. "
-            f"Check the scheme code."
+            f"No NAV data for scheme {amfi_scheme} between {start} and {end}. "
+            f"Verify the scheme code in LIVE_SIPS config."
         )
 
     nav_by_date = {}
@@ -213,51 +212,85 @@ def fetch_nav(amfi_scheme, nav_date):
             return result
 
     raise ValueError(
-        f"No trading day found for scheme {amfi_scheme} within 7 days of {nav_date}."
+        f"No trading day found for scheme {amfi_scheme} within 7 days of {nav_date}. "
+        f"Market may have been closed for an extended period."
     )
 
 
 def fetch_latest_nav(amfi_scheme):
-    """Fetch the most recent available NAV from mfapi.in (no date needed).
-    Uses the /latest endpoint which always returns the last published NAV."""
-    if amfi_scheme in _nav_cache.get("latest", {}):
-        return _nav_cache["latest"][amfi_scheme]
+    """Fetch the most recent NAV from mfapi.in /latest endpoint."""
+    cache_key = ("latest", amfi_scheme)
+    if cache_key in _nav_cache:
+        return _nav_cache[cache_key]
 
     url = f"https://api.mfapi.in/mf/{amfi_scheme}/latest"
-    resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-    resp.raise_for_status()
-    data = resp.json()
-    if data.get("status") != "SUCCESS" or not data.get("data"):
-        raise ValueError(f"No latest NAV for scheme {amfi_scheme}")
-    nav = float(data["data"][0]["nav"])
-    if "latest" not in _nav_cache:
-        _nav_cache["latest"] = {}
-    _nav_cache["latest"][amfi_scheme] = nav
-    return nav
-
-
-def fetch_nav_by_scheme_name(scheme_name, nav_date):
-    """Look up the mfapi scheme code from LIVE_SIPS config and fetch NAV."""
-    match = next((s for s in LIVE_SIPS if s["scheme"] == scheme_name), None)
-    if not match:
-        raise ValueError(
-            f"Scheme '{scheme_name}' not found in LIVE_SIPS config. "
-            f"Add it first with --add-sip."
-        )
-    return fetch_nav(match["amfi_scheme"], nav_date)
+    try:
+        resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("status") != "SUCCESS" or not data.get("data"):
+            raise ValueError(f"No latest NAV for scheme {amfi_scheme}")
+        nav = float(data["data"][0]["nav"])
+        _nav_cache[cache_key] = nav
+        return nav
+    except Exception as e:
+        raise ValueError(f"Could not fetch latest NAV for scheme {amfi_scheme}: {e}")
 
 
 # ── Ledger Helpers ────────────────────────────────────────────────────────────
 
 def load_ledger(person):
     path = BASE_DIR / LEDGER_FILES[person]
-    with open(path) as f:
-        return [t for t in json.load(f) if t is not None]
+    if not path.exists():
+        print(f"\n  ⚠️  Ledger file not found: {path.name}")
+        print(f"      Make sure all JSON files are in the same folder as update_sips.py")
+        sys.exit(1)
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        return [t for t in data if t is not None]
+    except json.JSONDecodeError as e:
+        print(f"\n  ⚠️  Corrupt JSON in {path.name}: {e}")
+        print(f"      Download a fresh copy from GitHub and try again.")
+        sys.exit(1)
+
 
 def save_ledger(person, txns):
     path = BASE_DIR / LEDGER_FILES[person]
-    with open(path, "w") as f:
-        json.dump(txns, f, indent=2)
+    try:
+        with open(path, "w") as f:
+            json.dump(txns, f, indent=2)
+    except PermissionError:
+        print(f"\n  ⚠️  Cannot write to {path.name} -- is the file open in another program?")
+        sys.exit(1)
+    except OSError as e:
+        print(f"\n  ⚠️  Failed to save {path.name}: {e}")
+        sys.exit(1)
+
+
+def load_metrics(person):
+    path = BASE_DIR / METRICS_FILES[person]
+    if not path.exists():
+        print(f"\n  ⚠️  Metrics file not found: {path.name}")
+        print(f"      Make sure all JSON files are in the same folder as update_sips.py")
+        sys.exit(1)
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"\n  ⚠️  Corrupt JSON in {path.name}: {e}")
+        sys.exit(1)
+
+
+def save_metrics(person, data):
+    path = BASE_DIR / METRICS_FILES[person]
+    try:
+        with open(path, "w") as f:
+            json.dump(data, f, indent=2)
+    except (PermissionError, OSError) as e:
+        print(f"\n  ⚠️  Failed to save {path.name}: {e}")
+        sys.exit(1)
+
 
 def last_sip_date(txns, scheme):
     dates = [
@@ -267,8 +300,8 @@ def last_sip_date(txns, scheme):
     ]
     return max(dates) if dates else None
 
+
 def sip_due_dates_since(last_date, sip_day, up_to, stopped_after=None):
-    """Return calendar due dates for a SIP since last_date up to up_to."""
     import calendar
     due = []
     y, m = last_date.year, last_date.month
@@ -285,6 +318,7 @@ def sip_due_dates_since(last_date, sip_day, up_to, stopped_after=None):
             break
         due.append(d)
     return due
+
 
 def stamp_duty_and_units(gross, nav):
     stamp = round(gross * STAMP_DUTY_RATE, 2)
@@ -317,7 +351,8 @@ def recompute_metrics(person, txns, existing_metrics):
 
         if meta["status"] == "live" and scheme in amfi_lookup:
             try:
-                cur_value = round(units * fetch_latest_nav(amfi_lookup[scheme]), 2)
+                nav = fetch_latest_nav(amfi_lookup[scheme])
+                cur_value = round(units * nav, 2)
             except Exception:
                 cur_value = meta["current_value"]
         else:
@@ -366,11 +401,19 @@ def recompute_metrics(person, txns, existing_metrics):
 
 def rebuild_dashboard(all_metrics, all_ledgers):
     html_path = BASE_DIR / "daga_family_portfolio.html"
-    with open(html_path) as f:
-        html = f.read()
+    if not html_path.exists():
+        print(f"  ⚠️  Dashboard HTML not found: {html_path.name}")
+        print(f"      Make sure daga_family_portfolio.html is in the same folder.")
+        return
 
-    # ── Replace DATA block ──────────────────────────────────────────────────
-    # Use string splitting -- regex breaks on nested JSON braces.
+    try:
+        with open(html_path) as f:
+            html = f.read()
+    except OSError as e:
+        print(f"  ⚠️  Could not read dashboard HTML: {e}")
+        return
+
+    # Replace DATA block using string splitting (regex breaks on nested JSON)
     data_json = (
         "const DATA = {\n"
         "  Daksh: " + json.dumps(all_metrics["Daksh"]) + ",\n"
@@ -378,16 +421,14 @@ def rebuild_dashboard(all_metrics, all_ledgers):
         "  Ashwin: "+ json.dumps(all_metrics["Ashwin"])+ "\n"
         "};"
     )
-
     idx_s = html.find("const DATA = {")
     if idx_s == -1:
-        print("  WARNING: Could not find DATA block -- dashboard not updated!")
+        print("  ⚠️  Could not find DATA block in HTML -- dashboard not updated!")
         return
-    # The DATA block closes with "\n};" on its own line
     idx_e = html.find("\n};", idx_s) + len("\n};")
     html = html[:idx_s] + data_json + html[idx_e:]
 
-    # ── Build RECENT_TXNS and ACTIVE_SIPS ──────────────────────────────────
+    # Build RECENT_TXNS and ACTIVE_SIPS
     recent = []
     for person, txns in all_ledgers.items():
         for t in txns:
@@ -409,10 +450,220 @@ def rebuild_dashboard(all_metrics, all_ledgers):
     else:
         html = html.replace("const inr", txns_block + "\n\nconst inr", 1)
 
-    with open(html_path, "w") as f:
-        f.write(html)
-    print(f"  Dashboard rebuilt: {html_path.name}")
+    try:
+        with open(html_path, "w") as f:
+            f.write(html)
+        print(f"  Dashboard rebuilt: {html_path.name}")
+    except (PermissionError, OSError) as e:
+        print(f"  ⚠️  Could not write dashboard HTML: {e}")
+        print(f"      Is daga_family_portfolio.html open in a browser? Close and retry.")
 
+
+# ── Interactive Helpers ───────────────────────────────────────────────────────
+
+def cmd_lumpsum():
+    """Interactively record a one-off lumpsum purchase."""
+    print("\n── Record Lumpsum Purchase ──")
+
+    person = input("Person (Daksh / Kush / Ashwin): ").strip()
+    if person not in LEDGER_FILES:
+        print(f"Unknown person '{person}'. Must be exactly: Daksh, Kush, or Ashwin")
+        return
+
+    txns = load_ledger(person)
+    schemes = sorted(set(t["scheme"] for t in txns if t.get("scheme")))
+    print(f"\nAvailable schemes for {person}:")
+    for i, s in enumerate(schemes, 1):
+        print(f"  {i}. {s}")
+
+    choice = input("\nEnter number: ").strip()
+    try:
+        scheme = schemes[int(choice) - 1]
+    except (ValueError, IndexError):
+        print("Invalid choice."); return
+
+    gross_str = input("Gross amount (Rs): ").strip()
+    try:
+        gross = float(gross_str)
+        if gross <= 0:
+            print("Amount must be greater than zero."); return
+    except ValueError:
+        print(f"Invalid amount '{gross_str}'. Enter a number e.g. 50000"); return
+
+    date_str = input("Investment date (YYYY-MM-DD): ").strip()
+    try:
+        inv_date = date.fromisoformat(date_str)
+        if inv_date > date.today():
+            print("Date cannot be in the future."); return
+    except ValueError:
+        print(f"Invalid date '{date_str}'. Use format YYYY-MM-DD e.g. 2026-07-15"); return
+
+    amfi_str = input("AMFI scheme code (press Enter to use from SIP config): ").strip()
+    if amfi_str:
+        try:
+            amfi_scheme = int(amfi_str)
+        except ValueError:
+            print(f"Invalid scheme code '{amfi_str}'. Must be a number."); return
+    else:
+        match = next((s for s in LIVE_SIPS if s["scheme"] == scheme and s["person"] == person), None)
+        if match:
+            amfi_scheme = match["amfi_scheme"]
+        else:
+            print("Scheme not in SIP config. Please enter the AMFI scheme code manually.")
+            try:
+                amfi_scheme = int(input("AMFI scheme code: ").strip())
+            except ValueError:
+                print("Invalid scheme code."); return
+
+    print(f"\nFetching NAV for {inv_date}...")
+    try:
+        nav, allotment_date = fetch_nav(amfi_scheme, inv_date)
+    except ValueError as e:
+        print(f"  ⚠️  Could not fetch NAV: {e}"); return
+
+    net, units, stamp = stamp_duty_and_units(gross, nav)
+    folio = next(
+        (t["folio"] for t in txns if t.get("scheme") == scheme and t.get("folio")),
+        "UNKNOWN"
+    )
+
+    print(f"\n  Allotment date : {allotment_date}")
+    print(f"  NAV            : {nav}")
+    print(f"  Gross amount   : Rs {gross:,.2f}")
+    print(f"  Stamp duty     : Rs {stamp:,.2f}")
+    print(f"  Net amount     : Rs {net:,.2f}")
+    print(f"  Units allotted : {units:.3f}")
+
+    confirm = input("\nConfirm and save? (y/n): ").strip().lower()
+    if confirm != "y":
+        print("Cancelled."); return
+
+    txn = {
+        "person": person, "folio": folio, "scheme": scheme,
+        "type": "Lumpsum Purchase", "date": allotment_date.isoformat(),
+        "amount": net, "nav": nav, "units": units,
+        "sip_series": None,
+        "note": (
+            f"Lumpsum-added by update_sips.py on {date.today()}. "
+            f"Gross {gross}, stamp duty {stamp}."
+        ),
+    }
+    txns.append(txn)
+    save_ledger(person, txns)
+    print(f"\n✅ Lumpsum recorded successfully.")
+    print(f"   Run 'python update_sips.py' to rebuild the dashboard with updated metrics.")
+
+
+def cmd_stop_sip():
+    """Interactively mark a SIP as stopped."""
+    print("\n── Stop a SIP ──")
+    active = [(i, s) for i, s in enumerate(LIVE_SIPS) if s.get("active", True)]
+    if not active:
+        print("No active SIPs found."); return
+    for i, (idx, s) in enumerate(active, 1):
+        print(f"  {i}. {s['person']:<8} | {s['scheme'][:50]:<52} | Rs {s['sip_amount_gross']:,}/mo")
+
+    try:
+        choice   = int(input("\nEnter number to stop: ").strip()) - 1
+        sip_idx  = active[choice][0]
+    except (ValueError, IndexError):
+        print("Invalid choice."); return
+
+    stopped_date = input("Last SIP date processed (YYYY-MM-DD): ").strip()
+    try:
+        date.fromisoformat(stopped_date)
+    except ValueError:
+        print(f"Invalid date '{stopped_date}'. Use format YYYY-MM-DD."); return
+
+    LIVE_SIPS[sip_idx]["active"] = False
+    LIVE_SIPS[sip_idx]["stopped_after"] = stopped_date
+    print(f"\n✅ SIP marked as stopped after {stopped_date} for this run.")
+    print("   To make permanent: share details with Claude to update update_sips.py")
+
+
+def cmd_add_sip():
+    """Interactively add a new SIP."""
+    print("\n── Add a New SIP ──")
+    person = input("Person (Daksh / Kush / Ashwin): ").strip()
+    if person not in LEDGER_FILES:
+        print(f"Unknown person '{person}'."); return
+
+    scheme      = input("Scheme name (must match ledger exactly): ").strip()
+    folio       = input("Folio number: ").strip()
+
+    try:
+        sip_day = int(input("SIP date (day of month, e.g. 15): ").strip())
+        if not 1 <= sip_day <= 31:
+            print("Day must be between 1 and 31."); return
+        gross = float(input("SIP amount gross (Rs): ").strip())
+        if gross <= 0:
+            print("Amount must be greater than zero."); return
+        amfi_amc    = int(input("AMFI AMC code: ").strip())
+        amfi_scheme = int(input("AMFI scheme code: ").strip())
+    except ValueError:
+        print("Invalid input -- numbers only for day, amount, and codes."); return
+
+    sip_series = input("SIP series label (e.g. SIP-1 (live)): ").strip()
+    start_date = input("First SIP date (YYYY-MM-DD): ").strip()
+    try:
+        date.fromisoformat(start_date)
+    except ValueError:
+        print(f"Invalid date '{start_date}'. Use format YYYY-MM-DD."); return
+
+    new_sip = {
+        "person": person, "scheme": scheme, "folio": folio,
+        "sip_day": sip_day, "sip_amount_gross": gross,
+        "amfi_amc": amfi_amc, "amfi_scheme": amfi_scheme,
+        "sip_series": sip_series, "active": True,
+        "effective_from": start_date,
+    }
+    print(f"\n  Will add:\n{json.dumps(new_sip, indent=4)}")
+    confirm = input("\nConfirm? (y/n): ").strip().lower()
+    if confirm != "y":
+        print("Cancelled."); return
+
+    LIVE_SIPS.append(new_sip)
+    print("\n✅ New SIP added for this run.")
+    print("   To make permanent: share details with Claude to update update_sips.py")
+
+
+def cmd_change_sip_amount():
+    """Interactively change the amount of an existing SIP."""
+    print("\n── Change SIP Amount ──")
+    active = [(i, s) for i, s in enumerate(LIVE_SIPS) if s.get("active", True)]
+    if not active:
+        print("No active SIPs found."); return
+    for i, (idx, s) in enumerate(active, 1):
+        print(f"  {i}. {s['person']:<8} | {s['scheme'][:50]:<52} | Rs {s['sip_amount_gross']:,}/mo")
+
+    try:
+        choice   = int(input("\nEnter number to change: ").strip()) - 1
+        sip_idx  = active[choice][0]
+        new_gross = float(input("New gross SIP amount (Rs): ").strip())
+        if new_gross <= 0:
+            print("Amount must be greater than zero."); return
+    except (ValueError, IndexError):
+        print("Invalid input."); return
+
+    eff_from = input("Effective from date (YYYY-MM-DD, first instalment at new amount): ").strip()
+    try:
+        date.fromisoformat(eff_from)
+    except ValueError:
+        print(f"Invalid date '{eff_from}'. Use format YYYY-MM-DD."); return
+
+    old_amt = LIVE_SIPS[sip_idx]["sip_amount_gross"]
+    print(f"\n  Changing Rs {old_amt:,} → Rs {new_gross:,} from {eff_from}")
+    confirm = input("Confirm? (y/n): ").strip().lower()
+    if confirm != "y":
+        print("Cancelled."); return
+
+    LIVE_SIPS[sip_idx]["sip_amount_gross"] = new_gross
+    LIVE_SIPS[sip_idx]["amount_changed_from"] = eff_from
+    print("\n✅ SIP amount updated for this run.")
+    print("   To make permanent: share details with Claude to update update_sips.py")
+
+
+# ── Main SIP Update ───────────────────────────────────────────────────────────
 
 def main_update():
     today   = date.today()
@@ -424,7 +675,7 @@ def main_update():
 
     for sip in LIVE_SIPS:
         if not sip.get("active", True):
-            print(f"  ⏸  {sip['person']} | {sip['scheme'][:45]} | STOPPED")
+            print(f"  ⏸  {sip['person']:<8}| {sip['scheme'][:45]:<46}| STOPPED")
             continue
 
         person = sip["person"]
@@ -433,7 +684,7 @@ def main_update():
 
         last_date = last_sip_date(txns, scheme)
         if last_date is None:
-            print(f"  WARNING: No existing SIP found for {scheme} — skipping")
+            print(f"  ⚠️  No existing SIP found for {scheme} — skipping")
             continue
 
         stopped_after = sip.get("stopped_after")
@@ -450,7 +701,7 @@ def main_update():
         for due_date in due_dates:
             try:
                 nav, allotment_date = fetch_nav(sip["amfi_scheme"], due_date)
-            except Exception as e:
+            except ValueError as e:
                 print(f"    ⚠️  Could not fetch NAV for {due_date}: {e}")
                 continue
 
@@ -470,7 +721,7 @@ def main_update():
             new_txn_count += 1
             print(
                 f"    ✓ {due_date} → allotted {allotment_date} | "
-                f"NAV {nav:.4f} | Units {units:.3f} | Net ₹{net:,.2f}"
+                f"NAV {nav:.4f} | Units {units:.3f} | Net Rs {net:,.2f}"
             )
 
     if new_txn_count == 0:
@@ -487,23 +738,19 @@ def main_update():
     print("\nRecomputing metrics...")
     all_metrics = {}
     for person in ["Daksh", "Kush", "Ashwin"]:
-        mp = BASE_DIR / METRICS_FILES[person]
-        with open(mp) as f:
-            existing = json.load(f)
-        updated = recompute_metrics(person, ledgers[person], existing)
-        with open(mp, "w") as f:
-            json.dump(updated, f, indent=2)
+        existing = load_metrics(person)
+        updated  = recompute_metrics(person, ledgers[person], existing)
+        save_metrics(person, updated)
         all_metrics[person] = updated
         print(
-            f"  {person}: ₹{updated['total_invested']:,.0f} invested → "
-            f"₹{updated['total_current_value']:,.0f} current | "
+            f"  {person}: Rs {updated['total_invested']:,.0f} invested → "
+            f"Rs {updated['total_current_value']:,.0f} current | "
             f"XIRR {updated['total_xirr_pct']:.2f}%"
         )
 
     print("\nRebuilding dashboard...")
     rebuild_dashboard(all_metrics, ledgers)
 
-    # Summary table
     if new_txn_count > 0:
         print("\nSummary of new transactions added:")
         print(f"{'Person':<8}{'Fund':<44}{'Due Date':<12}{'Allotment':<12}{'NAV':>10}{'Units':>8}")
@@ -511,17 +758,13 @@ def main_update():
         for person, txns in ledgers.items():
             for t in txns:
                 note = t.get("note") or ""
-                if note.startswith("Auto-added") or note.startswith("Lumpsum-added"):
-                    if str(today) in note:
-                        fund  = t["scheme"].split(" - ")[0][:43]
-                        if "SIP due" in note:
-                            due = note.split("SIP due ")[1].split(",")[0]
-                        else:
-                            due = t["date"]
-                        print(
-                            f"{t['person']:<8}{fund:<44}{due:<12}"
-                            f"{t['date']:<12}{t['nav']:>10.4f}{t['units']:>8.3f}"
-                        )
+                if note.startswith("Auto-added") and str(today) in note:
+                    fund = t["scheme"].split(" - ")[0][:43]
+                    due  = note.split("SIP due ")[1].split(",")[0] if "SIP due" in note else t["date"]
+                    print(
+                        f"{t['person']:<8}{fund:<44}{due:<12}"
+                        f"{t['date']:<12}{t['nav']:>10.4f}{t['units']:>8.3f}"
+                    )
 
     print("\n✅ Done. Open daga_family_portfolio.html to see the updated dashboard.")
 
