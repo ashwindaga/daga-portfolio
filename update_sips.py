@@ -444,10 +444,15 @@ def rebuild_dashboard(all_metrics, all_ledgers):
     )
 
     if "const RECENT_TXNS" in html:
+        # Block runs from "const RECENT_TXNS" to end of "const ACTIVE_SIPS = ...;"
+        # Format is: const RECENT_TXNS = ...;\nconst ACTIVE_SIPS = ...;\n\nconst inr
         r_s = html.find("const RECENT_TXNS")
-        r_e = html.find(";", html.find("const ACTIVE_SIPS")) + 1
+        active_idx = html.find("const ACTIVE_SIPS", r_s)
+        r_e = html.find(";", active_idx) + 1
+        # Preserve whatever comes after (newlines + "const inr ...")
         html = html[:r_s] + txns_block + html[r_e:]
     else:
+        # First time -- inject before "const inr"
         html = html.replace("const inr", txns_block + "\n\nconst inr", 1)
 
     try:
