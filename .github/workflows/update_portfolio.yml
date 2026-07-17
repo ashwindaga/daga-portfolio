@@ -27,6 +27,15 @@ jobs:
       - name: Run SIP updater
         run: python update_sips.py
 
+      - name: Verify HTML was updated
+        run: |
+          echo "=== RECENT_TXNS line in HTML ==="
+          grep "const RECENT_TXNS" daga_family_portfolio.html | head -c 200
+          echo ""
+          echo "=== ACTIVE_SIPS line in HTML ==="
+          grep "const ACTIVE_SIPS" daga_family_portfolio.html | head -c 200
+          echo ""
+
       - name: Push updated files
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
