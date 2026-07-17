@@ -4090,5 +4090,17 @@
     "units": 15.9,
     "sip_series": "SIP-2 (live)",
     "note": "Auto-added by update_sips.py on 2026-07-08. SIP due 2026-07-04, allotted 2026-07-06. Gross 6000, stamp duty 0.3."
+  },
+  {
+    "person": "Kush",
+    "folio": "17046950/72",
+    "scheme": "ICICI Prudential Multicap Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-07-15",
+    "amount": 5999.7,
+    "nav": 957.35,
+    "units": 6.267,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-07-17. SIP due 2026-07-15, allotted 2026-07-15. Gross 6000, stamp duty 0.3."
   }
 ]
