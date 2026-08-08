@@ -4342,5 +4342,29 @@
     "units": 17.443,
     "sip_series": "SIP (live)",
     "note": "Auto-added by update_sips.py on 2026-07-22. SIP due 2026-07-20, allotted 2026-07-20. Gross 6000, stamp duty 0.3."
+  },
+  {
+    "person": "Daksh",
+    "folio": "10588849",
+    "scheme": "Kotak Midcap Fund - Growth (Regular Plan)",
+    "type": "SIP",
+    "date": "2026-07-28",
+    "amount": 5999.7,
+    "nav": 145.247,
+    "units": 41.307,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-08-08. SIP due 2026-07-28, allotted 2026-07-28. Gross 6000, stamp duty 0.3."
+  },
+  {
+    "person": "Daksh",
+    "folio": "505348365526",
+    "scheme": "UTI Nifty 50 Index Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-07-28",
+    "amount": 4999.75,
+    "nav": 168.7122,
+    "units": 29.635,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-08-08. SIP due 2026-07-28, allotted 2026-07-28. Gross 5000, stamp duty 0.25."
   }
 ]
