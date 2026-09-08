@@ -4366,5 +4366,53 @@
     "units": 29.635,
     "sip_series": "SIP (live)",
     "note": "Auto-added by update_sips.py on 2026-08-08. SIP due 2026-07-28, allotted 2026-07-28. Gross 5000, stamp duty 0.25."
+  },
+  {
+    "person": "Daksh",
+    "folio": "29975080",
+    "scheme": "Mirae Asset Large Cap Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-08-20",
+    "amount": 5999.7,
+    "nav": 129.275,
+    "units": 46.41,
+    "sip_series": "SIP-2 (live)",
+    "note": "Auto-added by update_sips.py on 2026-09-08. SIP due 2026-08-20, allotted 2026-08-20. Gross 6000, stamp duty 0.3."
+  },
+  {
+    "person": "Daksh",
+    "folio": "505348365526",
+    "scheme": "UTI Flexi Cap Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-08-20",
+    "amount": 5999.7,
+    "nav": 360.9399,
+    "units": 16.622,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-09-08. SIP due 2026-08-20, allotted 2026-08-20. Gross 6000, stamp duty 0.3."
+  },
+  {
+    "person": "Daksh",
+    "folio": "10588849",
+    "scheme": "Kotak Midcap Fund - Growth (Regular Plan)",
+    "type": "SIP",
+    "date": "2026-08-28",
+    "amount": 5999.7,
+    "nav": 148.341,
+    "units": 40.445,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-09-08. SIP due 2026-08-28, allotted 2026-08-28. Gross 6000, stamp duty 0.3."
+  },
+  {
+    "person": "Daksh",
+    "folio": "505348365526",
+    "scheme": "UTI Nifty 50 Index Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-08-28",
+    "amount": 4999.75,
+    "nav": 170.2276,
+    "units": 29.371,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-09-08. SIP due 2026-08-28, allotted 2026-08-28. Gross 5000, stamp duty 0.25."
   }
 ]

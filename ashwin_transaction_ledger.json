@@ -2578,5 +2578,41 @@
     "units": 56.418,
     "sip_series": "SIP-2 (live)",
     "note": "Auto-added by update_sips.py on 2026-08-08. SIP due 2026-07-28, allotted 2026-07-28. Gross 10000, stamp duty 0.5."
+  },
+  {
+    "person": "Ashwin",
+    "folio": "91016971423",
+    "scheme": "PGIM India Flexi Cap Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-08-17",
+    "amount": 9999.5,
+    "nav": 44.47,
+    "units": 224.859,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-09-08. SIP due 2026-08-15, allotted 2026-08-17. Gross 10000, stamp duty 0.5."
+  },
+  {
+    "person": "Ashwin",
+    "folio": "9018506334",
+    "scheme": "Motilal Oswal Nifty 50 Index Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-09-02",
+    "amount": 7499.62,
+    "nav": 20.8854,
+    "units": 359.084,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-09-08. SIP due 2026-09-02, allotted 2026-09-02. Gross 7500, stamp duty 0.38."
+  },
+  {
+    "person": "Ashwin",
+    "folio": "79914164382",
+    "scheme": "Mirae Asset Large and Midcap Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-08-28",
+    "amount": 9999.5,
+    "nav": 181.587,
+    "units": 55.067,
+    "sip_series": "SIP-2 (live)",
+    "note": "Auto-added by update_sips.py on 2026-09-08. SIP due 2026-08-28, allotted 2026-08-28. Gross 10000, stamp duty 0.5."
   }
 ]
