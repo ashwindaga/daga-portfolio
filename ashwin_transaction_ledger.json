@@ -2614,5 +2614,17 @@
     "units": 55.067,
     "sip_series": "SIP-2 (live)",
     "note": "Auto-added by update_sips.py on 2026-09-08. SIP due 2026-08-28, allotted 2026-08-28. Gross 10000, stamp duty 0.5."
+  },
+  {
+    "person": "Ashwin",
+    "folio": "91016971423",
+    "scheme": "PGIM India Flexi Cap Fund - Direct Plan Growth",
+    "type": "SIP",
+    "date": "2026-09-15",
+    "amount": 9999.5,
+    "nav": 42.76,
+    "units": 233.852,
+    "sip_series": "SIP (live)",
+    "note": "Auto-added by update_sips.py on 2026-09-17. SIP due 2026-09-15, allotted 2026-09-15. Gross 10000, stamp duty 0.5."
   }
 ]
