@@ -20,10 +20,10 @@
     },
     {
       "scheme": "Mirae Asset Large and Midcap Fund - Direct Plan Growth",
-      "invested": 262486.93,
-      "current_value": 265715.71,
-      "abs_return_pct": 1.2300726744756503,
-      "xirr_pct": 1.1020973576252502,
+      "invested": 222488.93,
+      "current_value": 232853.56,
+      "abs_return_pct": 4.6584924472422085,
+      "xirr_pct": 3.5883730762435757,
       "category": "Equity - Large & Midcap",
       "amc": "Mirae Asset",
       "status": "live",
@@ -31,7 +31,7 @@
       "sip_amount": 10000,
       "sip_day": 28,
       "since": "2024-06-03",
-      "units": 1573.148
+      "units": 1345.951
     },
     {
       "scheme": "Motilal Oswal Flexi Cap Fund - Regular Plan Growth",
@@ -52,10 +52,10 @@
     },
     {
       "scheme": "Motilal Oswal Nifty 50 Index Fund - Direct Plan Growth",
-      "invested": 239988.01,
-      "current_value": 251694.15,
-      "abs_return_pct": 4.877802020192585,
-      "xirr_pct": 3.686462037074937,
+      "invested": 229988.53,
+      "current_value": 234372.27,
+      "abs_return_pct": 1.9060689678741767,
+      "xirr_pct": 1.4227080827825975,
       "category": "Equity - Index",
       "amc": "Motilal Oswal",
       "status": "live",
@@ -63,14 +63,14 @@
       "sip_amount": 7500,
       "sip_day": 2,
       "since": "2022-05-12",
-      "units": 12751.691
+      "units": 12330.211000000001
     },
     {
       "scheme": "PGIM India Flexi Cap Fund - Direct Plan Growth",
-      "invested": 382481.01,
-      "current_value": 431142.96,
-      "abs_return_pct": 12.722710076508115,
-      "xirr_pct": 6.750133861649306,
+      "invested": 342483.01,
+      "current_value": 390662.17,
+      "abs_return_pct": 14.06760586459456,
+      "xirr_pct": 6.751885838865239,
       "category": "Equity - Flexi Cap",
       "amc": "PGIM India",
       "status": "live",
@@ -78,11 +78,11 @@
       "sip_amount": 10000,
       "sip_day": 15,
       "since": "2022-12-15",
-      "units": 10209.4
+      "units": 9281.591
     }
   ],
-  "total_invested": 1539935.53,
-  "total_current_value": 2119265.86,
-  "total_abs_return_pct": 37.62042752530035,
-  "total_xirr_pct": 10.927049247836639
+  "total_invested": 1449940.05,
+  "total_current_value": 2028601.04,
+  "total_abs_return_pct": 39.909304526073335,
+  "total_xirr_pct": 10.943048350510045
 }
