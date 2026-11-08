@@ -4246,5 +4246,29 @@
     "units": 6.594,
     "sip_series": "SIP (live)",
     "note": "Auto-added by update_sips.py on 2026-10-28. SIP due 2026-10-15, allotted 2026-10-15. Gross 6000, stamp duty 0.3."
+  },
+  {
+    "person": "Kush",
+    "folio": "17742075881",
+    "scheme": "Canara Robeco Flexi Cap Fund - Regular Plan Growth",
+    "type": "SIP",
+    "date": "2026-11-04",
+    "amount": 5999.7,
+    "nav": 339.19,
+    "units": 17.688,
+    "sip_series": "SIP-2 (live)",
+    "note": "Auto-added by update_sips.py on 2026-11-08. SIP due 2026-11-04, allotted 2026-11-04. Gross 6000, stamp duty 0.3."
+  },
+  {
+    "person": "Kush",
+    "folio": "30141876",
+    "scheme": "SBI Contra Fund - Regular Plan Growth",
+    "type": "SIP",
+    "date": "2026-11-04",
+    "amount": 5999.7,
+    "nav": 368.759,
+    "units": 16.27,
+    "sip_series": "SIP-2 (live)",
+    "note": "Auto-added by update_sips.py on 2026-11-08. SIP due 2026-11-04, allotted 2026-11-04. Gross 6000, stamp duty 0.3."
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-10-28",
+  "as_of": "2026-11-08",
   "person": "Ashwin",
   "dob": null,
   "schemes": [
@@ -8,7 +8,7 @@
       "invested": 354986.83,
       "current_value": 651296.59,
       "abs_return_pct": 83.47063467115102,
-      "xirr_pct": 12.595746254860538,
+      "xirr_pct": 12.519734672473184,
       "category": "Hybrid - Aggressive",
       "amc": "Mirae Asset",
       "status": "closed",
@@ -20,10 +20,10 @@
     },
     {
       "scheme": "Mirae Asset Large and Midcap Fund - Direct Plan Growth",
-      "invested": 262486.93,
-      "current_value": 260725.68,
-      "abs_return_pct": -0.6709857896543648,
-      "xirr_pct": -0.5755693309272448,
+      "invested": 272486.43,
+      "current_value": 290330.89,
+      "abs_return_pct": 6.5487518038971775,
+      "xirr_pct": 5.579147196987922,
       "category": "Equity - Large & Midcap",
       "amc": "Mirae Asset",
       "status": "live",
@@ -31,14 +31,14 @@
       "sip_amount": 10000,
       "sip_day": 28,
       "since": "2024-06-03",
-      "units": 1573.148
+      "units": 1633.44
     },
     {
       "scheme": "Motilal Oswal Flexi Cap Fund - Regular Plan Growth",
       "invested": 299992.75,
       "current_value": 519416.45,
       "abs_return_pct": 93.1434843008706,
-      "xirr_pct": 11.949611932132091,
+      "xirr_pct": 11.895092448304137,
       "category": "Equity - Flexi Cap",
       "amc": "Motilal Oswal",
       "status": "closed",
@@ -52,10 +52,10 @@
     },
     {
       "scheme": "Motilal Oswal Nifty 50 Index Fund - Direct Plan Growth",
-      "invested": 259987.01,
-      "current_value": 273673.54,
-      "abs_return_pct": 5.26431301317707,
-      "xirr_pct": 4.102001555494174,
+      "invested": 267486.63,
+      "current_value": 309190.65,
+      "abs_return_pct": 15.591067112401102,
+      "xirr_pct": 11.492050472692547,
       "category": "Equity - Index",
       "amc": "Motilal Oswal",
       "status": "live",
@@ -63,14 +63,14 @@
       "sip_amount": 7500,
       "sip_day": 2,
       "since": "2022-05-12",
-      "units": 13773.064
+      "units": 14139.342
     },
     {
       "scheme": "PGIM India Flexi Cap Fund - Direct Plan Growth",
       "invested": 392480.51,
-      "current_value": 434468.56,
-      "abs_return_pct": 10.698123583257672,
-      "xirr_pct": 5.688392603959958,
+      "current_value": 469882.09,
+      "abs_return_pct": 19.721127043990037,
+      "xirr_pct": 9.972158919933092,
       "category": "Equity - Flexi Cap",
       "amc": "PGIM India",
       "status": "live",
@@ -81,8 +81,8 @@
       "units": 10446.467
     }
   ],
-  "total_invested": 1569934.03,
-  "total_current_value": 2139580.82,
-  "total_abs_return_pct": 36.284759685093256,
-  "total_xirr_pct": 10.629651582654212
+  "total_invested": 1587433.15,
+  "total_current_value": 2240116.67,
+  "total_abs_return_pct": 41.115653909583536,
+  "total_xirr_pct": 11.639010556017846
 }
