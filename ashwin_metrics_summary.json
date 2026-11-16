@@ -1,13 +1,13 @@
 {
-  "as_of": "2026-11-08",
+  "as_of": "2026-11-16",
   "person": "Ashwin",
   "schemes": [
     {
       "scheme": "Mirae Asset Aggressive Hybrid Fund - Direct Plan Growth",
       "invested": 354986.83,
-      "current_value": 651296.59,
-      "abs_return_pct": 83.47063467115102,
-      "xirr_pct": 12.519734672473184,
+      "current_value": 690794.62,
+      "abs_return_pct": 94.59725308682577,
+      "xirr_pct": 13.714711159159826,
       "category": "Hybrid - Aggressive",
       "amc": "Mirae Asset",
       "status": "closed",
@@ -15,14 +15,16 @@
       "sip_amount": null,
       "sip_day": null,
       "since": "2019-01-15",
-      "units": 16836.33
+      "units": 16836.33,
+      "nav": 41.03,
+      "nav_date": "2026-11-13"
     },
     {
       "scheme": "Mirae Asset Large and Midcap Fund - Direct Plan Growth",
       "invested": 272486.43,
-      "current_value": 290330.89,
-      "abs_return_pct": 6.5487518038971775,
-      "xirr_pct": 5.579147196987922,
+      "current_value": 295325.95,
+      "abs_return_pct": 8.38189263223127,
+      "xirr_pct": 6.9763447056727355,
       "category": "Equity - Large & Midcap",
       "amc": "Mirae Asset",
       "status": "live",
@@ -30,14 +32,16 @@
       "sip_amount": 10000,
       "sip_day": 28,
       "since": "2024-06-03",
-      "units": 1633.44
+      "units": 1633.44,
+      "nav": 180.8,
+      "nav_date": "2026-11-13"
     },
     {
       "scheme": "Motilal Oswal Flexi Cap Fund - Regular Plan Growth",
       "invested": 299992.75,
-      "current_value": 519416.45,
-      "abs_return_pct": 93.1434843008706,
-      "xirr_pct": 11.895092448304137,
+      "current_value": 593262.96,
+      "abs_return_pct": 117.7595825232443,
+      "xirr_pct": 13.9932249850692,
       "category": "Equity - Flexi Cap",
       "amc": "Motilal Oswal",
       "status": "closed",
@@ -47,14 +51,16 @@
       "since": "2017-12-04",
       "net_invested": 239992.75,
       "redeemed": 60000.0,
-      "units": 9060.922
+      "units": 9060.922,
+      "nav": 65.4749,
+      "nav_date": "2026-11-13"
     },
     {
       "scheme": "Motilal Oswal Nifty 50 Index Fund - Direct Plan Growth",
       "invested": 267486.63,
-      "current_value": 309190.65,
-      "abs_return_pct": 15.591067112401102,
-      "xirr_pct": 11.492050472692547,
+      "current_value": 310625.79,
+      "abs_return_pct": 16.127594863339514,
+      "xirr_pct": 11.664285217644721,
       "category": "Equity - Index",
       "amc": "Motilal Oswal",
       "status": "live",
@@ -62,14 +68,16 @@
       "sip_amount": 7500,
       "sip_day": 2,
       "since": "2022-05-12",
-      "units": 14139.342
+      "units": 14139.342,
+      "nav": 21.9689,
+      "nav_date": "2026-11-13"
     },
     {
       "scheme": "PGIM India Flexi Cap Fund - Direct Plan Growth",
       "invested": 392480.51,
-      "current_value": 469882.09,
-      "abs_return_pct": 19.721127043990037,
-      "xirr_pct": 9.972158919933092,
+      "current_value": 478030.33,
+      "abs_return_pct": 21.797214847687595,
+      "xirr_pct": 10.81299581118078,
       "category": "Equity - Flexi Cap",
       "amc": "PGIM India",
       "status": "live",
@@ -77,11 +85,13 @@
       "sip_amount": 10000,
       "sip_day": 15,
       "since": "2022-12-15",
-      "units": 10446.467
+      "units": 10446.467,
+      "nav": 45.76,
+      "nav_date": "2026-11-13"
     }
   ],
   "total_invested": 1587433.15,
-  "total_current_value": 2240116.67,
-  "total_abs_return_pct": 41.115653909583536,
-  "total_xirr_pct": 11.639010556017846
+  "total_current_value": 2368039.65,
+  "total_abs_return_pct": 49.17413372651315,
+  "total_xirr_pct": 13.159623774627866
 }
