@@ -1,0 +1,64 @@
+name: Daily Value Refresh
+
+# Revalues every holding at its latest NAV. Adds no transactions; the monthly
+# update does that. 02:23 UTC = 7:53am IST, Tuesday to Saturday, which is the
+# morning after each trading day once that day's NAVs are published.
+on:
+  schedule:
+    - cron: '23 2 * * 2-6'
+  workflow_dispatch:
+
+concurrency:
+  group: portfolio-update
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests pyxirr
+
+      # Exits with an error, and writes nothing, if any NAV could not be fetched.
+      - name: Refresh values
+        run: python update_sips.py --nav-only
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "Portfolio Bot"
+          git config user.email "portfolio-bot@users.noreply.github.com"
+          git add -f \
+            daksh_metrics_summary.json \
+            kush_metrics_summary.json \
+            ashwin_metrics_summary.json \
+            daga_family_portfolio.html
+          git diff --cached --stat
+          git commit -m "Value refresh $(date +'%Y-%m-%d')" || echo "Nothing to commit"
+          git push origin main || (git pull --rebase origin main && git push origin main)
+
+      - name: Raise an issue if the run failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          BODY="@${GITHUB_REPOSITORY_OWNER} the \"$GITHUB_WORKFLOW\" run on $(date +%F) failed, so the portfolio files were left unchanged. Details: $RUN_URL"
+          OPEN=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"Portfolio update failed\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$OPEN" ]; then
+            gh issue comment "$OPEN" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "Portfolio update failed" --body "$BODY"
+          fi

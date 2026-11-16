@@ -3,6 +3,7 @@ Daga Family Portfolio -- SIP Auto-Updater
 ==========================================
 Usage:
   python update_sips.py                        # normal monthly SIP update
+  python update_sips.py --nav-only             # refresh values at the latest NAV, add nothing
   python update_sips.py --lumpsum              # record a one-off lumpsum purchase
   python update_sips.py --stop-sip             # mark a SIP as stopped
   python update_sips.py --add-sip              # add a new SIP
@@ -15,6 +16,7 @@ Requirements:
 import json
 import re
 import sys
+import time
 import requests
 from datetime import date, timedelta
 from pathlib import Path
@@ -137,6 +139,26 @@ LIVE_SIPS = [
     },
 ]
 
+# Holdings with no running SIP. They are listed here (scheme name exactly as in
+# the ledger -> AMFI scheme code) so that their value is refreshed as well.
+OTHER_HOLDINGS = {
+    "Daksh": {
+        "SBI Focused Fund - Regular Plan Growth": 102756,
+        "ICICI Prudential Value Fund - Direct Plan Growth": 120323,
+    },
+    "Kush": {
+        "HDFC Children's Fund (Lock-In) - Regular Plan": 100900,
+        "Parag Parikh Flexi Cap Fund - Direct Plan Growth": 122639,
+        "ICICI Prudential Balanced Advantage Fund - Direct Plan Growth": 120377,
+        "ICICI Prudential Nifty Next 50 Index Fund - Direct Plan Growth": 120684,
+        "Canara Robeco Flexi Cap Fund - Direct Plan Growth": 118275,
+    },
+    "Ashwin": {
+        "Mirae Asset Aggressive Hybrid Fund - Direct Plan Growth": 134813,
+        "Motilal Oswal Flexi Cap Fund - Regular Plan Growth": 129048,
+    },
+}
+
 LEDGER_FILES = {
     "Daksh":  "daksh_transaction_ledger.json",
     "Kush":   "kush_transaction_ledger.json",
@@ -168,6 +190,30 @@ _nav_cache = {}
 
 # ── NAV Fetching ──────────────────────────────────────────────────────────────
 
+class NavNotAvailable(ValueError):
+    """mfapi.in answered, but has no NAV for the date asked (yet)."""
+
+
+def _get_json(url, attempts=3):
+    """GET a mfapi.in URL and return its JSON, retrying brief network failures."""
+    problem = "unknown error"
+    for attempt in range(attempts):
+        try:
+            resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+            resp.raise_for_status()
+            return resp.json()
+        except requests.exceptions.ConnectionError:
+            problem = "No internet connection. Check your network and try again."
+        except requests.exceptions.Timeout:
+            problem = "mfapi.in timed out. Try again in a few minutes."
+        except requests.exceptions.HTTPError as e:
+            problem = f"mfapi.in returned error: {e}"
+        except ValueError:
+            problem = "mfapi.in returned invalid data."
+        if attempt < attempts - 1:
+            time.sleep(3 * (attempt + 1))
+    raise ValueError(problem)
+
 def fetch_nav(amfi_scheme, nav_date):
     """Fetch historical NAV from mfapi.in for a given scheme and date.
     Returns (nav, actual_allotment_date) rolling forward for non-trading days."""
@@ -179,23 +225,10 @@ def fetch_nav(amfi_scheme, nav_date):
     end   = (nav_date + timedelta(days=7)).strftime("%Y-%m-%d")
     url   = f"https://api.mfapi.in/mf/{amfi_scheme}?startDate={start}&endDate={end}"
 
-    try:
-        resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-        resp.raise_for_status()
-    except requests.exceptions.ConnectionError:
-        raise ValueError("No internet connection. Check your network and try again.")
-    except requests.exceptions.Timeout:
-        raise ValueError("mfapi.in timed out. Try again in a few minutes.")
-    except requests.exceptions.HTTPError as e:
-        raise ValueError(f"mfapi.in returned error: {e}")
-
-    try:
-        data = resp.json()
-    except Exception:
-        raise ValueError(f"mfapi.in returned invalid data for scheme {amfi_scheme}.")
+    data = _get_json(url)
 
     if data.get("status") != "SUCCESS" or not data.get("data"):
-        raise ValueError(
+        raise NavNotAvailable(
             f"No NAV data for scheme {amfi_scheme} between {start} and {end}. "
             f"Verify the scheme code in LIVE_SIPS config."
         )
@@ -215,30 +248,53 @@ def fetch_nav(amfi_scheme, nav_date):
             _nav_cache[cache_key] = result
             return result
 
-    raise ValueError(
+    raise NavNotAvailable(
         f"No trading day found for scheme {amfi_scheme} within 7 days of {nav_date}. "
         f"Market may have been closed for an extended period."
     )
 
 
 def fetch_latest_nav(amfi_scheme):
-    """Fetch the most recent NAV from mfapi.in /latest endpoint."""
+    """Fetch the most recent NAV from mfapi.in.
+    Returns (nav, nav_date, scheme_name_as_published)."""
     cache_key = ("latest", amfi_scheme)
     if cache_key in _nav_cache:
         return _nav_cache[cache_key]
 
-    url = f"https://api.mfapi.in/mf/{amfi_scheme}/latest"
+    data = _get_json(f"https://api.mfapi.in/mf/{amfi_scheme}/latest")
     try:
-        resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("status") != "SUCCESS" or not data.get("data"):
-            raise ValueError(f"No latest NAV for scheme {amfi_scheme}")
-        nav = float(data["data"][0]["nav"])
-        _nav_cache[cache_key] = nav
-        return nav
-    except Exception as e:
-        raise ValueError(f"Could not fetch latest NAV for scheme {amfi_scheme}: {e}")
+        if data.get("status") != "SUCCESS":
+            raise KeyError("status")
+        entry    = data["data"][0]
+        nav      = float(entry["nav"])
+        nav_date = date(*(int(x) for x in reversed(entry["date"].split("-"))))
+        name     = data["meta"]["scheme_name"]
+    except (KeyError, IndexError, TypeError, ValueError, AttributeError):
+        raise ValueError(f"No latest NAV for scheme {amfi_scheme}")
+    if nav <= 0:
+        raise ValueError(f"Latest NAV for scheme {amfi_scheme} is not positive")
+
+    _nav_cache[cache_key] = (nav, nav_date, name)
+    return _nav_cache[cache_key]
+
+
+MAX_NAV_AGE_DAYS = 10     # an older "latest" NAV means the scheme stopped publishing
+MAX_NAV_JUMP     = 0.40   # a bigger move since the last run means the wrong scheme
+
+
+def check_latest_nav(scheme, published_name, nav, nav_date, previous_nav, today):
+    """Return a reason the NAV should not be trusted, or None if it looks right."""
+    ours, theirs = scheme.lower(), published_name.lower()
+    if ours.split()[0] not in theirs:
+        return f"code points at a different fund house ('{published_name}')"
+    if ("direct" in ours) != ("direct" in theirs):
+        return f"code points at the wrong plan ('{published_name}')"
+    if (today - nav_date).days > MAX_NAV_AGE_DAYS:
+        return f"latest NAV is dated {nav_date}, more than {MAX_NAV_AGE_DAYS} days old"
+    if previous_nav and abs(nav / previous_nav - 1) > MAX_NAV_JUMP:
+        return (f"NAV {nav:.4f} is more than {MAX_NAV_JUMP:.0%} away from the "
+                f"last recorded {previous_nav:.4f}")
+    return None
 
 
 # ── Ledger Helpers ────────────────────────────────────────────────────────────
@@ -333,12 +389,14 @@ def stamp_duty_and_units(gross, nav):
 
 # ── Metrics Recompute ─────────────────────────────────────────────────────────
 
-def recompute_metrics(person, txns, existing_metrics):
+def recompute_metrics(person, txns, existing_metrics, errors):
+    """Revalue every holding at its latest NAV. Problems are appended to errors."""
     as_of = date.today()
-    amfi_lookup = {
+    amfi_lookup = dict(OTHER_HOLDINGS.get(person, {}))
+    amfi_lookup.update({
         s["scheme"]: s["amfi_scheme"]
         for s in LIVE_SIPS if s["person"] == person
-    }
+    })
     schemes_meta = {s["scheme"]: s for s in existing_metrics["schemes"]}
     updated_schemes = []
     all_cf_dates, all_cf_amounts = [], []
@@ -353,14 +411,23 @@ def recompute_metrics(person, txns, existing_metrics):
         redeemed = -sum(t["amount"] for t in rows if t["amount"] < 0)
         units    = sum(t["units"]  for t in rows)
 
-        if meta["status"] == "live" and scheme in amfi_lookup:
-            try:
-                nav = fetch_latest_nav(amfi_lookup[scheme])
-                cur_value = round(units * nav, 2)
-            except Exception:
-                cur_value = meta["current_value"]
+        cur_value = meta["current_value"]
+        nav_used  = {}
+        if scheme not in amfi_lookup:
+            errors.append(f"{person} | {scheme}: no AMFI scheme code configured")
         else:
-            cur_value = meta["current_value"]
+            old_units    = meta.get("units") or 0
+            previous_nav = meta["current_value"] / old_units if old_units > 0 else None
+            try:
+                nav, nav_date, published = fetch_latest_nav(amfi_lookup[scheme])
+                problem = check_latest_nav(scheme, published, nav, nav_date, previous_nav, as_of)
+            except ValueError as e:
+                problem = str(e)
+            if problem:
+                errors.append(f"{person} | {scheme}: {problem}")
+            else:
+                cur_value = round(units * nav, 2)
+                nav_used  = {"nav": nav, "nav_date": nav_date.isoformat()}
 
         cf_d = [date.fromisoformat(t["date"]) for t in rows]
         cf_a = [-t["amount"] for t in rows]
@@ -376,6 +443,7 @@ def recompute_metrics(person, txns, existing_metrics):
             "current_value": cur_value,
             "abs_return_pct": abs_ret, "xirr_pct": irr,
         })
+        updated.update(nav_used)
         updated_schemes.append(updated)
         all_cf_dates.extend(cf_d)
         all_cf_amounts.extend(cf_a)
@@ -673,15 +741,21 @@ def cmd_change_sip_amount():
 
 # ── Main SIP Update ───────────────────────────────────────────────────────────
 
-def main_update():
+PENDING_GRACE_DAYS = 7   # a NAV this recent may simply not be published yet
+
+
+def main_update(nav_only=False):
     today   = date.today()
     ledgers = {p: load_ledger(p) for p in ["Daksh", "Kush", "Ashwin"]}
     new_txn_count = 0
+    errors  = []   # anything here stops the run before a single file is written
+    pending = []   # instalments whose NAV is not out yet; picked up next run
 
-    print(f"\nDaga Family SIP Updater — running as of {today}")
+    mode = "NAV refresh only" if nav_only else "SIP update"
+    print(f"\nDaga Family SIP Updater — {mode}, running as of {today}")
     print("=" * 60)
 
-    for sip in LIVE_SIPS:
+    for sip in ([] if nav_only else LIVE_SIPS):
         if not sip.get("active", True):
             print(f"  ⏸  {sip['person']:<8}| {sip['scheme'][:45]:<46}| STOPPED")
             continue
@@ -709,9 +783,18 @@ def main_update():
         for due_date in due_dates:
             try:
                 nav, allotment_date = fetch_nav(sip["amfi_scheme"], due_date)
-            except ValueError as e:
+            except NavNotAvailable as e:
+                if (today - due_date).days <= PENDING_GRACE_DAYS:
+                    pending.append(f"{person} | {scheme} | due {due_date}")
+                    print(f"    …  NAV for {due_date} not published yet — will be added next run")
+                    break
+                errors.append(f"{person} | {scheme} | SIP due {due_date}: {e}")
                 print(f"    ⚠️  Could not fetch NAV for {due_date}: {e}")
-                continue
+                break
+            except ValueError as e:
+                errors.append(f"{person} | {scheme} | SIP due {due_date}: {e}")
+                print(f"    ⚠️  Could not fetch NAV for {due_date}: {e}")
+                break
 
             net, units, stamp = stamp_duty_and_units(sip["sip_amount_gross"], nav)
             txn = {
@@ -732,24 +815,36 @@ def main_update():
                 f"NAV {nav:.4f} | Units {units:.3f} | Net Rs {net:,.2f}"
             )
 
-    if new_txn_count == 0:
-        print("\n  All SIPs are up to date. Nothing to add.")
+    if nav_only:
+        pass
+    elif new_txn_count == 0:
+        print("\n  No new instalments to add.")
     else:
         print(f"\n  Total new transactions: {new_txn_count}")
 
     print("\n" + "=" * 60)
-    print("Saving ledgers...")
-    for person, txns in ledgers.items():
-        save_ledger(person, txns)
-        print(f"  {person}: {len(txns)} transactions saved")
-
-    print("\nRecomputing metrics...")
+    print("Fetching latest NAVs and recomputing metrics...")
     all_metrics = {}
     for person in ["Daksh", "Kush", "Ashwin"]:
         existing = load_metrics(person)
-        updated  = recompute_metrics(person, ledgers[person], existing)
-        save_metrics(person, updated)
-        all_metrics[person] = updated
+        all_metrics[person] = recompute_metrics(person, ledgers[person], existing, errors)
+
+    if errors:
+        print("\n❌ FAILED — nothing was saved. Problems found:")
+        for e in errors:
+            print(f"   - {e}")
+        print("\n   Fix the cause (or simply run again if it was a network problem).")
+        sys.exit(1)
+
+    print("\nSaving...")
+    for person, txns in ledgers.items():
+        if not nav_only:
+            save_ledger(person, txns)
+            print(f"  {person}: {len(txns)} transactions saved")
+        save_metrics(person, all_metrics[person])
+
+    for person in ["Daksh", "Kush", "Ashwin"]:
+        updated = all_metrics[person]
         print(
             f"  {person}: Rs {updated['total_invested']:,.0f} invested → "
             f"Rs {updated['total_current_value']:,.0f} current | "
@@ -774,6 +869,11 @@ def main_update():
                         f"{t['date']:<12}{t['nav']:>10.4f}{t['units']:>8.3f}"
                     )
 
+    if pending:
+        print("\nWaiting for NAV (will be added on the next run):")
+        for p in pending:
+            print(f"   - {p}")
+
     print("\n✅ Done. Open daga_family_portfolio.html to see the updated dashboard.")
 
 
@@ -789,5 +889,7 @@ if __name__ == "__main__":
         cmd_add_sip()
     elif "--change-sip-amount" in args:
         cmd_change_sip_amount()
+    elif "--nav-only" in args:
+        main_update(nav_only=True)
     else:
         main_update()

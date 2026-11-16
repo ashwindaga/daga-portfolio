@@ -1,9 +1,17 @@
 name: Monthly Portfolio Update
 
+# Adds the month's SIP instalments, then revalues everything.
+# 03:53 UTC = 9:23am IST on the 8th. Kept off the top of the hour, when
+# GitHub's scheduler is busiest and runs start hours late.
 on:
   schedule:
-    - cron: '0 4 8 * *'
+    - cron: '53 3 8 * *'
   workflow_dispatch:
+
+# Never run at the same time as the daily value refresh.
+concurrency:
+  group: portfolio-update
+  cancel-in-progress: false
 
 jobs:
   update:
@@ -11,6 +19,7 @@ jobs:
 
     permissions:
       contents: write
+      issues: write
 
     steps:
       - name: Checkout repository
@@ -24,15 +33,9 @@ jobs:
       - name: Install dependencies
         run: pip install requests pyxirr
 
+      # Exits with an error, and writes nothing, if any NAV could not be fetched.
       - name: Run SIP updater
         run: python update_sips.py
-
-      - name: Verify HTML content
-        run: |
-          echo "RECENT_TXNS line:"
-          grep "const RECENT_TXNS" daga_family_portfolio.html | cut -c1-150
-          echo "ACTIVE_SIPS line:"
-          grep "const ACTIVE_SIPS" daga_family_portfolio.html | cut -c1-150
 
       - name: Commit and push all changes
         run: |
@@ -46,7 +49,20 @@ jobs:
             kush_metrics_summary.json \
             ashwin_metrics_summary.json \
             daga_family_portfolio.html
-          git status
           git diff --cached --stat
           git commit -m "Portfolio update $(date +'%Y-%m-%d %H:%M')" || echo "Nothing to commit"
           git push origin main || (git pull --rebase origin main && git push origin main)
+
+      - name: Raise an issue if the run failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          BODY="@${GITHUB_REPOSITORY_OWNER} the \"$GITHUB_WORKFLOW\" run on $(date +%F) failed, so the portfolio files were left unchanged. Details: $RUN_URL"
+          OPEN=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"Portfolio update failed\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$OPEN" ]; then
+            gh issue comment "$OPEN" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "Portfolio update failed" --body "$BODY"
+          fi
