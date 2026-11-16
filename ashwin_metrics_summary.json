@@ -17,7 +17,10 @@
       "since": "2019-01-15",
       "units": 16836.33,
       "nav": 41.03,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 50",
+      "benchmark_value": 633836.2,
+      "benchmark_xirr_pct": 11.89067429615734
     },
     {
       "scheme": "Mirae Asset Large and Midcap Fund - Direct Plan Growth",
@@ -34,7 +37,10 @@
       "since": "2024-06-03",
       "units": 1633.44,
       "nav": 180.8,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty LargeMidcap 250",
+      "benchmark_value": 289224.88,
+      "benchmark_xirr_pct": 5.140555383757168
     },
     {
       "scheme": "Motilal Oswal Flexi Cap Fund - Regular Plan Growth",
@@ -53,7 +59,10 @@
       "redeemed": 60000.0,
       "units": 9060.922,
       "nav": 65.4749,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 50",
+      "benchmark_value": 541708.0,
+      "benchmark_xirr_pct": 12.52826174232908
     },
     {
       "scheme": "Motilal Oswal Nifty 50 Index Fund - Direct Plan Growth",
@@ -87,11 +96,16 @@
       "since": "2022-12-15",
       "units": 10446.467,
       "nav": 45.76,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 461694.93,
+      "benchmark_xirr_pct": 8.881132582667103
     }
   ],
   "total_invested": 1587433.15,
   "total_current_value": 2368039.65,
   "total_abs_return_pct": 49.17413372651315,
-  "total_xirr_pct": 13.159623774627866
+  "total_xirr_pct": 13.159623774627866,
+  "total_benchmark_value": 2237089.8,
+  "total_benchmark_xirr_pct": 11.530581523469065
 }

@@ -17,7 +17,10 @@
       "sip_day": null,
       "since": "2024-06-04",
       "nav": 406.65,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 5954.01,
+      "benchmark_xirr_pct": 7.383569632868459
     },
     {
       "scheme": "Canara Robeco Flexi Cap Fund - Regular Plan Growth",
@@ -34,7 +37,10 @@
       "sip_day": 4,
       "since": "2022-06-01",
       "nav": 357.18,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 352024.94,
+      "benchmark_xirr_pct": 9.970851297567222
     },
     {
       "scheme": "HDFC Children's Fund (Lock-In) - Regular Plan",
@@ -51,7 +57,10 @@
       "sip_day": null,
       "since": "2019-07-02",
       "nav": 294.289,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 50",
+      "benchmark_value": 709450.43,
+      "benchmark_xirr_pct": 12.526033175888996
     },
     {
       "scheme": "ICICI Prudential Balanced Advantage Fund - Direct Plan Growth",
@@ -68,7 +77,10 @@
       "sip_day": null,
       "since": "2021-04-22",
       "nav": 90.82,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 50",
+      "benchmark_value": 368642.8,
+      "benchmark_xirr_pct": 11.599255476301717
     },
     {
       "scheme": "ICICI Prudential Multicap Fund - Direct Plan Growth",
@@ -85,7 +97,10 @@
       "sip_day": 15,
       "since": "2021-03-10",
       "nav": 942.78,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 629328.15,
+      "benchmark_xirr_pct": 9.589942250380313
     },
     {
       "scheme": "ICICI Prudential Nifty 50 Index Fund - Direct Plan Growth",
@@ -119,7 +134,10 @@
       "sip_day": null,
       "since": "2024-03-07",
       "nav": 67.8332,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 50",
+      "benchmark_value": 56511.56,
+      "benchmark_xirr_pct": 3.867689381761432
     },
     {
       "scheme": "Parag Parikh Flexi Cap Fund - Direct Plan Growth",
@@ -136,7 +154,10 @@
       "sip_day": null,
       "since": "2021-05-11",
       "nav": 94.2594,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 825397.5,
+      "benchmark_xirr_pct": 11.90818109856966
     },
     {
       "scheme": "SBI Contra Fund - Regular Plan Growth",
@@ -153,11 +174,16 @@
       "sip_day": 4,
       "since": "2022-06-01",
       "nav": 382.7265,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 357475.03,
+      "benchmark_xirr_pct": 9.858324609185876
     }
   ],
   "total_invested": 2358167.92,
   "total_current_value": 3625877.39,
   "total_abs_return_pct": 53.7582357578675,
-  "total_xirr_pct": 12.725333687071338
+  "total_xirr_pct": 12.725333687071338,
+  "total_benchmark_value": 3457465.1,
+  "total_benchmark_xirr_pct": 11.31583599645368
 }

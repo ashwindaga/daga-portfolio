@@ -17,7 +17,10 @@
       "sip_day": null,
       "since": "2023-05-30",
       "nav": 524.37,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 403731.38,
+      "benchmark_xirr_pct": 9.157543629268494
     },
     {
       "scheme": "Kotak Midcap Fund - Growth (Regular Plan)",
@@ -34,7 +37,10 @@
       "sip_day": 28,
       "since": "2022-05-12",
       "nav": 141.504,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty Midcap 150",
+      "benchmark_value": 393319.31,
+      "benchmark_xirr_pct": 14.462797898286267
     },
     {
       "scheme": "Mirae Asset Large Cap Fund - Direct Plan Growth",
@@ -51,7 +57,10 @@
       "sip_day": 20,
       "since": "2022-04-20",
       "nav": 133.031,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 50",
+      "benchmark_value": 351502.31,
+      "benchmark_xirr_pct": 8.094847756558572
     },
     {
       "scheme": "SBI Focused Fund - Regular Plan Growth",
@@ -68,7 +77,10 @@
       "sip_day": null,
       "since": "2022-05-18",
       "nav": 413.907,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 844276.39,
+      "benchmark_xirr_pct": 12.813619610035861
     },
     {
       "scheme": "UTI Flexi Cap Fund - Direct Plan Growth",
@@ -85,7 +97,10 @@
       "sip_day": 20,
       "since": "2022-05-20",
       "nav": 360.881,
-      "nav_date": "2026-11-13"
+      "nav_date": "2026-11-13",
+      "benchmark": "Nifty 500",
+      "benchmark_value": 513990.11,
+      "benchmark_xirr_pct": 8.66199454421735
     },
     {
       "scheme": "UTI Nifty 50 Index Fund - Direct Plan Growth",
@@ -108,5 +123,7 @@
   "total_invested": 1998916.96,
   "total_current_value": 2783862.19,
   "total_abs_return_pct": 39.26852619230365,
-  "total_xirr_pct": 12.608169233799128
+  "total_xirr_pct": 12.608169233799128,
+  "total_benchmark_value": 2675310.13,
+  "total_benchmark_xirr_pct": 11.066196901503766
 }
