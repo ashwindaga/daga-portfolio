@@ -141,6 +141,16 @@
   .return-pair .r-label{font-size:9px;}
   .return-pair .r-value{font-family:var(--serif);font-size:15px;font-weight:700;}
 
+  /* ---------- Benchmark line on each card ---------- */
+  .card-bench{
+    margin:0 22px;padding:10px 0 14px;border-top:1px dashed var(--line-soft);
+    display:flex;flex-direction:column;gap:5px;
+    font-family:var(--mono);font-size:11px;color:var(--muted-paper);
+  }
+  .card-bench .b-verdict{font-weight:700;}
+  .card-bench .b-verdict.ahead{color:var(--green);}
+  .card-bench .b-verdict.behind{color:var(--red);}
+
   /* ---------- Placeholder panel ---------- */
   .empty-panel{
     border:1px dashed var(--line);border-radius:4px;
@@ -294,7 +304,7 @@
   <div id="panels"></div>
 
   <div class="footnote">
-    Figures are built from each member's CAMS/RTA consolidated account statement, transaction by transaction, then re-priced using the scheme's own NAV history. XIRR treats every SIP instalment, lumpsum and step-up as its own cash flow on its allotment date. ICICI Prudential Value Fund is held as a closed position: the systematic transfer that fed it ran out of source units in Aug&nbsp;2024, so no further inflows are assumed unless you tell Claude otherwise. Send an update any time and the figures here will be recomputed from scratch.
+    Figures are built from each member's CAMS/RTA consolidated account statement, transaction by transaction, then re-priced using the scheme's own NAV history. XIRR treats every SIP instalment, lumpsum and step-up as its own cash flow on its allotment date. ICICI Prudential Value Fund is held as a closed position: the systematic transfer that fed it ran out of source units in Aug&nbsp;2024, so no further inflows are assumed unless you tell Claude otherwise. Send an update any time and the figures here will be recomputed from scratch. The index fund comparison on each card puts the same rupees on the same dates into a real index fund (Nifty 500 for flexi cap, multicap, value, focused and contra funds; Nifty Midcap 150 for midcap; Nifty LargeMidcap 250 for large and midcap; Nifty 50 for large cap, for hybrid funds, and for holdings that began before Sep&nbsp;2019, when the Nifty 500 index fund did not yet exist). Hybrid funds hold debt as well as equity, so an all-equity index is a demanding yardstick for them.
   </div>
 
 </div>
@@ -324,6 +334,9 @@ function renderFamilyStrip(){
   });
   const gain = totalCurrent - totalInvested;
   const absRet = totalInvested ? (gain/totalInvested*100) : 0;
+  const benchKnown = people.every(p => !DATA[p] || typeof DATA[p].total_benchmark_value === 'number');
+  const totalBench = benchKnown ? people.reduce((a,p)=>a+(DATA[p]?DATA[p].total_benchmark_value:0),0) : null;
+  const vsIndex = benchKnown ? totalCurrent - totalBench : null;
 
   const html = `
     <div>
@@ -341,11 +354,17 @@ function renderFamilyStrip(){
       <div class="fs-value ${absRet>=0?'pos':'neg'}">${pct(absRet)}</div>
       <div class="fs-sub" style="color:var(--muted)">since each fund's start date</div>
     </div>
+    ${benchKnown ? `
+    <div>
+      <div class="fs-label">Vs Index Funds</div>
+      <div class="fs-value ${vsIndex>=0?'pos':'neg'}">${vsIndex>=0?'+':'\u2212'}${inr(Math.abs(vsIndex))}</div>
+      <div class="fs-sub" style="color:var(--muted)">same money in index funds: ${inr(totalBench)}</div>
+    </div>` : `
     <div>
       <div class="fs-label">Holdings Tracked</div>
       <div class="fs-value">${people.reduce((a,p)=>a+(DATA[p]?DATA[p].schemes.length:0),0)}</div>
       <div class="fs-sub" style="color:var(--muted)">across ${activeCount} member${activeCount===1?'':'s'}</div>
-    </div>
+    </div>`}
   `;
   document.getElementById('familyStrip').innerHTML = html;
 }
@@ -382,6 +401,21 @@ function renderTabs(){
       }
     });
   });
+}
+
+function benchLine(s){
+  if(typeof s.benchmark_xirr_pct !== 'number'){
+    return s.category && s.category.indexOf('Index') !== -1
+      ? `<div class="card-bench"><span>Index fund &middot; nothing to compare against</span></div>`
+      : '';
+  }
+  const diff = s.xirr_pct - s.benchmark_xirr_pct;
+  const ahead = diff >= 0;
+  return `
+      <div class="card-bench" title="The same amounts on the same dates in a ${s.benchmark} index fund would be worth ${inr(s.benchmark_value)} today.">
+        <span>${s.benchmark} index fund: ${pct(s.benchmark_xirr_pct)} &middot; ${inr(s.benchmark_value)}</span>
+        <span class="b-verdict ${ahead?'ahead':'behind'}">${ahead?'Ahead':'Behind'} by ${Math.abs(diff).toFixed(1)} pts</span>
+      </div>`;
 }
 
 function schemeCard(s){
@@ -423,7 +457,7 @@ function schemeCard(s){
             <div class="r-value" style="color:${s.xirr_pct>=0?'var(--green)':'var(--red)'}">${pct(s.xirr_pct)}</div>
           </div>
         </div>
-      </div>
+      </div>${benchLine(s)}
     </div>
   `;
 }
@@ -472,6 +506,11 @@ function renderPanels(){
               <div class="t-label">XIRR (Blended)</div>
               <div class="t-value" style="color:${d.total_xirr_pct>=0?'#8fc9a8':'#e0a392'}">${pct(d.total_xirr_pct)}</div>
             </div>
+            ${typeof d.total_benchmark_xirr_pct === 'number' ? `
+            <div class="total-item" title="The same amounts on the same dates in matching index funds would be worth ${inr(d.total_benchmark_value)} today.">
+              <div class="t-label">Index Funds XIRR</div>
+              <div class="t-value">${pct(d.total_benchmark_xirr_pct)}</div>
+            </div>` : ''}
           </div>
         </div>
         <div class="holdings">

@@ -13,6 +13,7 @@ Requirements:
   pip install requests pyxirr
 """
 
+import bisect
 import json
 import re
 import sys
@@ -159,6 +160,48 @@ OTHER_HOLDINGS = {
     },
 }
 
+# ── Benchmarks ───────────────────────────────────────────────────────────
+# Each holding is compared with an index fund: the same rupees invested on the
+# same dates, valued today. Real index funds are used (not the bare index) so
+# the comparison is with something that could actually have been bought.
+# "from" is the first date the index fund has a NAV.
+BENCHMARKS = {
+    "Nifty 50":              {"amfi_scheme": 120716, "from": "2013-01-02"},  # UTI Nifty 50 Index, Direct
+    "Nifty 500":             {"amfi_scheme": 147625, "from": "2019-09-11"},  # Motilal Oswal Nifty 500 Index, Direct
+    "Nifty Midcap 150":      {"amfi_scheme": 147622, "from": "2019-09-11"},  # Motilal Oswal Nifty Midcap 150 Index, Direct
+    "Nifty LargeMidcap 250": {"amfi_scheme": 149343, "from": "2021-12-03"},  # Edelweiss Nifty Large Midcap 250 Index, Direct
+}
+
+# Scheme name (exactly as in the ledger) -> benchmark. A fund gets the index
+# closest to how it invests, provided that index fund existed when the first
+# rupee went in; otherwise Nifty 50. None = the holding is itself a Nifty 50
+# index fund, so there is nothing to compare.
+SCHEME_BENCHMARK = {
+    # Daksh
+    "Mirae Asset Large Cap Fund - Direct Plan Growth":               "Nifty 50",
+    "UTI Flexi Cap Fund - Direct Plan Growth":                       "Nifty 500",
+    "Kotak Midcap Fund - Growth (Regular Plan)":                     "Nifty Midcap 150",
+    "UTI Nifty 50 Index Fund - Direct Plan Growth":                  None,
+    "SBI Focused Fund - Regular Plan Growth":                        "Nifty 500",
+    "ICICI Prudential Value Fund - Direct Plan Growth":              "Nifty 500",
+    # Kush
+    "ICICI Prudential Multicap Fund - Direct Plan Growth":           "Nifty 500",
+    "ICICI Prudential Nifty 50 Index Fund - Direct Plan Growth":     None,
+    "Canara Robeco Flexi Cap Fund - Regular Plan Growth":            "Nifty 500",
+    "Canara Robeco Flexi Cap Fund - Direct Plan Growth":             "Nifty 500",
+    "SBI Contra Fund - Regular Plan Growth":                         "Nifty 500",
+    "Parag Parikh Flexi Cap Fund - Direct Plan Growth":              "Nifty 500",
+    "ICICI Prudential Nifty Next 50 Index Fund - Direct Plan Growth": "Nifty 50",
+    "ICICI Prudential Balanced Advantage Fund - Direct Plan Growth": "Nifty 50",   # hybrid; no index fund matches
+    "HDFC Children's Fund (Lock-In) - Regular Plan":                 "Nifty 50",   # started Jul-2019, before Nifty 500 fund
+    # Ashwin
+    "PGIM India Flexi Cap Fund - Direct Plan Growth":                "Nifty 500",
+    "Motilal Oswal Nifty 50 Index Fund - Direct Plan Growth":        None,
+    "Mirae Asset Large and Midcap Fund - Direct Plan Growth":        "Nifty LargeMidcap 250",
+    "Mirae Asset Aggressive Hybrid Fund - Direct Plan Growth":       "Nifty 50",   # hybrid; started Jan-2019
+    "Motilal Oswal Flexi Cap Fund - Regular Plan Growth":            "Nifty 50",   # started Dec-2017, before Nifty 500 fund
+}
+
 LEDGER_FILES = {
     "Daksh":  "daksh_transaction_ledger.json",
     "Kush":   "kush_transaction_ledger.json",
@@ -295,6 +338,62 @@ def check_latest_nav(scheme, published_name, nav, nav_date, previous_nav, today)
         return (f"NAV {nav:.4f} is more than {MAX_NAV_JUMP:.0%} away from the "
                 f"last recorded {previous_nav:.4f}")
     return None
+
+
+def fetch_nav_history(amfi_scheme):
+    """Full NAV history of a scheme as two parallel, date-ordered lists."""
+    cache_key = ("history", amfi_scheme)
+    if cache_key in _nav_cache:
+        return _nav_cache[cache_key]
+
+    data = _get_json(f"https://api.mfapi.in/mf/{amfi_scheme}")
+    points = []
+    for entry in (data.get("data") or []):
+        try:
+            d = date(*(int(x) for x in reversed(entry["date"].split("-"))))
+            nav = float(entry["nav"])
+        except (ValueError, KeyError, TypeError):
+            continue
+        if nav > 0:
+            points.append((d, nav))
+    if len(points) < 100:
+        raise ValueError(f"No usable NAV history for scheme {amfi_scheme}")
+    points.sort()
+    result = ([p[0] for p in points], [p[1] for p in points])
+    _nav_cache[cache_key] = result
+    return result
+
+
+def benchmark_for(scheme, rows, as_of):
+    """Value today of the same cash flows had they gone into the scheme's
+    benchmark index fund. Returns a dict of metrics fields ({} when the scheme
+    has no benchmark). Raises ValueError if it cannot be worked out."""
+    if scheme not in SCHEME_BENCHMARK:
+        raise ValueError("no benchmark chosen in SCHEME_BENCHMARK")
+    label = SCHEME_BENCHMARK[scheme]
+    if label is None:
+        return {}
+
+    dates, navs = fetch_nav_history(BENCHMARKS[label]["amfi_scheme"])
+    if (as_of - dates[-1]).days > MAX_NAV_AGE_DAYS:
+        raise ValueError(f"{label} index fund NAV is stale (last {dates[-1]})")
+
+    units = 0.0
+    for t in rows:
+        d = date.fromisoformat(t["date"])
+        if d < dates[0]:
+            raise ValueError(f"{label} index fund has no NAV on {d} (starts {dates[0]})")
+        i = min(bisect.bisect_left(dates, d), len(dates) - 1)   # that day, else next trading day
+        units += t["amount"] / navs[i]
+
+    value = round(units * navs[-1], 2)
+    cf_d  = [date.fromisoformat(t["date"]) for t in rows]
+    cf_a  = [-t["amount"] for t in rows]
+    try:
+        irr = compute_xirr(cf_d + [as_of], cf_a + [value]) * 100
+    except Exception as e:
+        raise ValueError(f"could not compute {label} XIRR: {e}")
+    return {"benchmark": label, "benchmark_value": value, "benchmark_xirr_pct": irr}
 
 
 # ── Ledger Helpers ────────────────────────────────────────────────────────────
@@ -444,12 +543,27 @@ def recompute_metrics(person, txns, existing_metrics, errors):
             "abs_return_pct": abs_ret, "xirr_pct": irr,
         })
         updated.update(nav_used)
+
+        for key in ("benchmark", "benchmark_value", "benchmark_xirr_pct"):
+            updated.pop(key, None)
+        try:
+            updated.update(benchmark_for(scheme, rows, as_of))
+        except ValueError as e:
+            errors.append(f"{person} | {scheme}: benchmark: {e}")
         updated_schemes.append(updated)
         all_cf_dates.extend(cf_d)
         all_cf_amounts.extend(cf_a)
 
     total_invested = sum(s.get("invested", 0) for s in updated_schemes)
     total_current  = sum(s.get("current_value", 0) for s in updated_schemes)
+    # Index funds held as such count at their own value on the benchmark side.
+    total_bench    = sum(s.get("benchmark_value", s.get("current_value", 0)) for s in updated_schemes)
+    try:
+        bench_xirr = compute_xirr(
+            all_cf_dates + [as_of], all_cf_amounts + [total_bench]
+        ) * 100
+    except Exception:
+        bench_xirr = None
     try:
         port_xirr = compute_xirr(
             all_cf_dates + [as_of], all_cf_amounts + [total_current]
@@ -465,6 +579,8 @@ def recompute_metrics(person, txns, existing_metrics, errors):
         "total_current_value": total_current,
         "total_abs_return_pct": (total_current - total_invested) / total_invested * 100,
         "total_xirr_pct": port_xirr,
+        "total_benchmark_value": total_bench,
+        "total_benchmark_xirr_pct": bench_xirr,
     }
 
 
