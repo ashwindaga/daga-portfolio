@@ -104,11 +104,11 @@
     },
     {
       "scheme": "ICICI Prudential Nifty 50 Index Fund - Direct Plan Growth",
-      "invested": 129993.5,
-      "units": 573.396,
-      "current_value": 152680.68,
-      "abs_return_pct": 17.452549550554444,
-      "xirr_pct": 8.298759549198932,
+      "invested": 134993.25,
+      "units": 592.25,
+      "current_value": 157701.01,
+      "abs_return_pct": 16.821404033164626,
+      "xirr_pct": 8.303025653722639,
       "category": "Equity - Index",
       "amc": "ICICI Prudential",
       "status": "live",
@@ -180,10 +180,10 @@
       "benchmark_xirr_pct": 9.858324609185876
     }
   ],
-  "total_invested": 2358167.92,
-  "total_current_value": 3625877.39,
-  "total_abs_return_pct": 53.7582357578675,
-  "total_xirr_pct": 12.725333687071338,
-  "total_benchmark_value": 3457465.1,
-  "total_benchmark_xirr_pct": 11.31583599645368
+  "total_invested": 2363167.67,
+  "total_current_value": 3630897.7199999997,
+  "total_abs_return_pct": 53.645370410809655,
+  "total_xirr_pct": 12.725407948834135,
+  "total_benchmark_value": 3462485.43,
+  "total_benchmark_xirr_pct": 11.315924157758603
 }
