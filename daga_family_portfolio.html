@@ -5,277 +5,181 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daga Family Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inconsolata:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#152029;
-    --ink-2:#1d2c38;
-    --paper:#f6f1e7;
-    --paper-2:#efe7d8;
-    --line:#33424f;
-    --line-soft:#cdbfa3;
-    --gold:#b08a3e;
-    --gold-bright:#d4a94f;
-    --green:#3f7b5c;
-    --green-bg:#e7efe5;
-    --red:#a14b3e;
-    --red-bg:#f3e6e1;
-    --muted:#7d8a93;
-    --muted-paper:#8c8061;
-    --serif: 'Source Serif 4', serif;
-    --sans: 'Inter', sans-serif;
-    --mono: 'Inconsolata', monospace;
+    --ink:#152029;          /* page */
+    --ink-raised:#1c2a35;   /* panels on the page */
+    --line:#34444f;
+    --paper:#f6f1e7;        /* cards */
+    --paper-line:#d9cdb4;
+    --on-ink:#f6f1e7;
+    --on-ink-soft:#b3bdc4;  /* secondary text on the page */
+    --on-paper:#152029;
+    --on-paper-soft:#5c5444;/* secondary text on cards */
+    --gold:#d4a94f;
+    --up:#2c6a4a;   --up-bg:#dcebdd;   --up-on-ink:#8fd0ac;
+    --down:#9a3d2f; --down-bg:#f3dcd4; --down-on-ink:#eba896;
+    --serif:'Source Serif 4', Georgia, serif;
+    --sans:'Inter', system-ui, sans-serif;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--ink);
-    color:var(--paper);
-    font-family:var(--sans);
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
+    background:var(--ink);color:var(--on-ink);
+    font-family:var(--sans);font-size:15px;line-height:1.45;
+    min-height:100vh;-webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:1180px;margin:0 auto;padding:40px 24px 80px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:36px 24px 72px;}
+  .num{font-family:var(--serif);font-variant-numeric:lining-nums tabular-nums;font-weight:600;}
+  .up{color:var(--up);} .down{color:var(--down);}
+  .pos{color:var(--up-on-ink);} .neg{color:var(--down-on-ink);}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 
   /* ---------- Masthead ---------- */
   .masthead{
-    display:flex;justify-content:space-between;align-items:flex-end;
-    border-bottom:1px solid var(--line);
-    padding-bottom:22px;margin-bottom:30px;flex-wrap:wrap;gap:16px;
+    display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;
+    border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:28px;
   }
-  .masthead-left .eyebrow{
-    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--gold-bright);margin:0 0 6px;
+  .masthead-left .eyebrow{font-size:14px;font-weight:500;color:var(--gold);margin:0 0 4px;}
+  .masthead-left h1{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.1;margin:0;letter-spacing:-.01em;}
+  .masthead-right{text-align:right;font-size:14px;color:var(--on-ink-soft);}
+  .masthead-right .asof{color:var(--on-ink);font-weight:500;}
+  .lastUpdated{margin-top:1px;}
+  #refreshBtn{
+    margin-top:10px;padding:9px 16px;background:transparent;color:var(--gold);
+    border:1px solid var(--gold);border-radius:6px;font:600 14px var(--sans);cursor:pointer;
   }
-  .masthead-left h1{
-    font-family:var(--serif);font-weight:600;font-size:34px;margin:0;
-    letter-spacing:-.01em;
-  }
-  .masthead-right{text-align:right;font-family:var(--mono);font-size:12px;color:var(--muted);}
-  .masthead-right .asof{color:var(--paper);font-size:13px;margin-bottom:2px;}
+  #refreshBtn:hover{background:var(--gold);color:var(--ink);}
+  #refreshBtn:disabled{opacity:.5;cursor:not-allowed;}
+  #refreshStatus{font-size:13px;margin-top:6px;min-height:18px;color:var(--on-ink-soft);}
 
-  /* ---------- Family total strip ---------- */
-  .family-strip{
+  /* ---------- Summary bars (family, and each person) ---------- */
+  .summary{
     display:grid;grid-template-columns:repeat(4,1fr);
-    border:1px solid var(--line);border-radius:2px;
-    margin-bottom:34px;overflow:hidden;
+    background:var(--ink-raised);border:1px solid var(--line);border-radius:6px;overflow:hidden;
   }
-  .family-strip > div{
-    padding:18px 22px;border-right:1px solid var(--line);
-  }
-  .family-strip > div:last-child{border-right:none;}
-  .fs-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-  .fs-value{font-family:var(--serif);font-size:26px;font-weight:600;}
-  .fs-sub{font-family:var(--mono);font-size:12px;margin-top:4px;}
-  .pos{color:#8fc9a8;}
-  .neg{color:#e0a392;}
+  .summary.five{grid-template-columns:repeat(5,1fr);}
+  .summary > div{padding:16px 20px;border-right:1px solid var(--line);}
+  .summary > div:last-child{border-right:none;}
+  .s-label{font-size:13.5px;color:var(--on-ink-soft);margin-bottom:4px;}
+  .s-value{font-size:27px;line-height:1.15;}
+  .summary.five .s-value{font-size:23px;}
+  .s-sub{font-size:13.5px;color:var(--on-ink-soft);margin-top:4px;}
+  .family-strip{margin-bottom:30px;}
 
-  /* ---------- Person tabs ---------- */
+  /* ---------- Tabs ---------- */
   .tabs{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
   .tab{
-    font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;
-    padding:9px 18px;border:1px solid var(--line);border-radius:20px;
-    background:transparent;color:var(--muted);cursor:pointer;
-    transition:all .15s ease;
+    font:500 15px var(--sans);padding:9px 18px;border:1px solid var(--line);border-radius:20px;
+    background:transparent;color:var(--on-ink-soft);cursor:pointer;
   }
-  .tab.active{background:var(--gold-bright);color:var(--ink);border-color:var(--gold-bright);font-weight:600;}
-  .tab:not(.active):hover{border-color:var(--gold-bright);color:var(--paper);}
-  .tab .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin-right:7px;position:relative;top:-1px;}
-  .tab.has-data .dot{background:var(--green);}
-  .tab.placeholder .dot{background:var(--muted);}
+  .tab.active{background:var(--gold);color:var(--ink);border-color:var(--gold);font-weight:600;}
+  .tab:not(.active):hover{border-color:var(--gold);color:var(--on-ink);}
+  .tab.gap{margin-left:12px;}
 
   /* ---------- Person panel ---------- */
   .panel{display:none;}
   .panel.active{display:block;}
+  .person-head{margin-bottom:14px;}
+  .person-head h2{font-family:var(--serif);font-size:26px;font-weight:600;margin:0 0 2px;}
+  .person-head .meta{font-size:14px;color:var(--on-ink-soft);}
+  .person-summary{margin-bottom:20px;}
 
-  .person-head{
-    display:flex;justify-content:space-between;align-items:flex-start;
-    margin-bottom:22px;flex-wrap:wrap;gap:18px;
-  }
-  .person-head h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:0 0 4px;}
-  .person-head .meta{font-family:var(--mono);font-size:12px;color:var(--muted);}
-
-  .totals-row{display:flex;gap:28px;flex-wrap:wrap;}
-  .total-item{text-align:right;}
-  .total-item .t-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
-  .total-item .t-value{font-family:var(--serif);font-size:21px;font-weight:600;}
-
-  /* ---------- Passbook cards (signature element) ---------- */
-  .holdings{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;}
+  /* ---------- Holding cards ---------- */
+  .holdings{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;}
   .card{
-    background:var(--paper);color:var(--ink);
-    border-radius:3px;padding:0;position:relative;overflow:hidden;
-    box-shadow:0 1px 0 rgba(0,0,0,.4),0 8px 18px -10px rgba(0,0,0,.5);
+    background:var(--paper);color:var(--on-paper);border-radius:6px;
+    padding:20px 22px 18px;display:flex;flex-direction:column;
+    border-top:4px solid var(--gold);
   }
-  .card::before{
-    content:'';position:absolute;top:0;left:0;right:0;height:4px;
-    background:repeating-linear-gradient(90deg,var(--gold) 0,var(--gold) 8px,transparent 8px,transparent 14px);
-    opacity:.55;
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .card-name{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.2;margin:0;}
+  .card-kind{font-size:13.5px;color:var(--on-paper-soft);margin:3px 0 0;}
+  .badge{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:12px;white-space:nowrap;flex-shrink:0;}
+  .badge.live{background:var(--up-bg);color:var(--up);}
+  .badge.closed{background:#e6dcc6;color:var(--on-paper-soft);}
+
+  .card-money{margin-top:16px;}
+  .c-label{font-size:13.5px;color:var(--on-paper-soft);}
+  .c-value{font-size:30px;line-height:1.15;margin-top:1px;}
+  .c-line{font-size:14.5px;margin-top:6px;color:var(--on-paper-soft);}
+  .c-line b{font-weight:600;color:var(--on-paper);}
+  .c-line b.up{color:var(--up);} .c-line b.down{color:var(--down);}
+
+  .card-returns{
+    margin-top:16px;padding-top:14px;border-top:1px solid var(--paper-line);
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;
   }
-  .card-body{padding:20px 22px 18px;}
-  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px;}
-  .card-amc{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-paper);}
-  .card-scheme{font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.25;margin-top:3px;}
-  .badge{
-    font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;
-    padding:4px 9px;border-radius:11px;white-space:nowrap;flex-shrink:0;margin-top:2px;
+  .r-title{grid-column:1 / -1;margin-bottom:-6px;}
+  .r-value{font-size:24px;line-height:1.15;}
+  .verdict{
+    margin:12px 0 0;padding:9px 12px;border-radius:5px;font-size:14.5px;font-weight:600;line-height:1.35;
   }
-  .badge.live{background:var(--green-bg);color:var(--green);}
-  .badge.closed{background:#e9e2cf;color:var(--muted-paper);}
-
-  .card-figs{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:14px;}
-  .fig .f-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-paper);margin-bottom:3px;}
-  .fig .f-value{font-family:var(--serif);font-size:17px;font-weight:600;}
-  .fig .f-value.small{font-size:14px;font-weight:500;}
-
-  .card-divider{border-top:1px dashed var(--line-soft);margin:0 22px;}
-
-  .card-foot{
-    padding:12px 22px 16px;display:flex;justify-content:space-between;align-items:center;
-    font-family:var(--mono);font-size:11px;color:var(--muted-paper);
+  .verdict.ahead{background:var(--up-bg);color:var(--up);}
+  .verdict.behind{background:var(--down-bg);color:var(--down);}
+  .verdict.none{background:#ece3cf;color:var(--on-paper-soft);font-weight:500;}
+  .verdict span{display:block;font-weight:500;}
+  .card-sip{
+    margin-top:auto;padding-top:14px;font-size:14.5px;color:var(--on-paper-soft);
   }
-  .card-foot .sip-info{font-weight:600;color:var(--ink);}
+  .card-sip b{color:var(--on-paper);font-weight:600;}
 
-  .return-pair{display:flex;gap:18px;}
-  .return-pair .r-item{text-align:right;}
-  .return-pair .r-label{font-size:9px;}
-  .return-pair .r-value{font-family:var(--serif);font-size:15px;font-weight:700;}
+  /* ---------- Empty panel ---------- */
+  .empty-panel{border:1px dashed var(--line);border-radius:6px;padding:54px 30px;text-align:center;color:var(--on-ink-soft);}
+  .empty-panel .e-title{font-family:var(--serif);font-size:20px;color:var(--on-ink);margin-bottom:8px;}
+  .empty-panel .e-sub{font-size:14.5px;max-width:440px;margin:0 auto;line-height:1.6;}
 
-  /* ---------- Benchmark line on each card ---------- */
-  .card-bench{
-    margin:0 22px;padding:10px 0 14px;border-top:1px dashed var(--line-soft);
-    display:flex;flex-direction:column;gap:5px;
-    font-family:var(--mono);font-size:11px;color:var(--muted-paper);
+  /* ---------- Active SIPs and Recent updates ---------- */
+  .panel-header{margin-bottom:16px;}
+  .panel-title{font-family:var(--serif);font-size:26px;font-weight:600;margin-bottom:2px;}
+  .panel-sub{font-size:14px;color:var(--on-ink-soft);}
+  .sip-section, .run-section{
+    margin:0 0 18px;background:var(--ink-raised);border:1px solid var(--line);border-radius:6px;overflow:hidden;
   }
-  .card-bench .b-verdict{font-weight:700;}
-  .card-bench .b-verdict.ahead{color:var(--green);}
-  .card-bench .b-verdict.behind{color:var(--red);}
-
-  /* ---------- Placeholder panel ---------- */
-  .empty-panel{
-    border:1px dashed var(--line);border-radius:4px;
-    padding:54px 30px;text-align:center;color:var(--muted);
+  .sip-section-header, .run-header{
+    display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 16px;
+    padding:14px 18px;border-bottom:1px solid var(--line);
   }
-  .empty-panel .e-title{font-family:var(--serif);font-size:19px;color:var(--paper);margin-bottom:8px;}
-  .empty-panel .e-sub{font-family:var(--sans);font-size:13.5px;max-width:440px;margin:0 auto;line-height:1.6;}
+  .sip-person, .run-date{font-family:var(--serif);font-weight:600;font-size:18px;}
+  .sip-person-total{font-size:15px;color:var(--up-on-ink);font-weight:600;}
+  .run-summary{font-size:14px;color:var(--on-ink-soft);}
+  .table-scroll{overflow-x:auto;}
+  .sip-table{width:100%;border-collapse:collapse;font-size:14.5px;font-variant-numeric:lining-nums tabular-nums;}
+  .sip-table th{
+    padding:10px 18px;text-align:left;font-size:13.5px;font-weight:500;color:var(--on-ink-soft);
+    border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  .sip-table td{padding:11px 18px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  .sip-table td.sip-fund-name{white-space:normal;min-width:200px;font-weight:500;}
+  .sip-table tr:last-child td{border-bottom:none;}
+  .sip-section .sip-table{table-layout:fixed;min-width:600px;}
+  .sip-section .sip-table th:first-child{width:44%;}
 
   /* ---------- Footnote ---------- */
   .footnote{
     margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
-    font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.7;
+    font-size:14px;color:var(--on-ink-soft);line-height:1.65;max-width:78ch;
   }
 
+  @media(max-width:900px){
+    .summary.five{grid-template-columns:repeat(2,1fr);}
+    .summary.five > div{border-bottom:1px solid var(--line);}
+    .summary.five > div:nth-child(2n){border-right:none;}
+    .summary.five > div:last-child{grid-column:1 / -1;border-bottom:none;}
+  }
   @media(max-width:760px){
-    .family-strip{grid-template-columns:repeat(2,1fr);}
-    .family-strip > div:nth-child(2){border-right:none;}
-    .totals-row{width:100%;justify-content:space-between;}
-    .total-item{text-align:left;}
+    .wrap{padding:24px 16px 56px;}
+    .masthead-left h1{font-size:28px;}
+    .masthead-right{text-align:left;}
+    .summary{grid-template-columns:repeat(2,1fr);}
+    .summary > div{border-bottom:1px solid var(--line);}
+    .summary > div:nth-child(2n){border-right:none;}
+    .summary:not(.five) > div:nth-last-child(-n+2){border-bottom:none;}
+    .s-value, .summary.five .s-value{font-size:22px;}
+    .holdings{grid-template-columns:1fr;}
+    .tab.gap{margin-left:0;}
   }
-
-.sip-section, .run-section {
-  margin: 0 24px 24px;
-  background: var(--card);
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-.sip-section-header, .run-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-}
-.sip-person { font-weight: 600; font-size: 15px; }
-.sip-person-total { font-size: 13px; color: #8fc9a8; font-weight: 600; }
-.run-date { font-weight: 600; font-size: 14px; }
-.run-summary { font-size: 12px; color: var(--sub); }
-.sip-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.sip-table th {
-  padding: 10px 16px;
-  text-align: left;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--sub);
-  border-bottom: 1px solid var(--border);
-}
-.sip-table td {
-  padding: 11px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.sip-table tr:last-child td { border-bottom: none; }
-.sip-table tr:hover td { background: var(--bg2); }
-.sip-fund-name { font-weight: 500; max-width: 260px; }
-.panel-header { padding: 24px 24px 16px; }
-.panel-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.panel-sub { font-size: 13px; color: var(--sub); }
-
-.refreshBtn-wrap { margin-top: 10px; text-align: right; }
-#refreshBtn {
-  margin-top: 8px;
-  padding: 7px 14px;
-  background: var(--accent, #4f8ef7);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  letter-spacing: .02em;
-  transition: opacity .2s;
-}
-#refreshBtn:hover { opacity: .85; }
-#refreshBtn:disabled { opacity: .5; cursor: not-allowed; }
-#refreshStatus {
-  font-size: 11px;
-  margin-top: 4px;
-  text-align: right;
-  min-height: 16px;
-  color: var(--sub);
-}
-.lastUpdated { font-size: 11px; color: var(--muted); margin-top: 3px; text-align: right; }
-.sip-section, .run-section {
-  margin: 0 24px 24px;
-  background: var(--card);
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-.sip-section-header, .run-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-}
-.sip-person { font-weight: 600; font-size: 15px; }
-.sip-person-total { font-size: 13px; color: #8fc9a8; font-weight: 600; }
-.run-date { font-weight: 600; font-size: 14px; }
-.run-summary { font-size: 12px; color: var(--sub); }
-.sip-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.sip-table th {
-  padding: 10px 16px;
-  text-align: left;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--sub);
-  border-bottom: 1px solid var(--border);
-}
-.sip-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); }
-.sip-table tr:last-child td { border-bottom: none; }
-.sip-table tr:hover td { background: var(--bg2); }
-.sip-fund-name { font-weight: 500; max-width: 260px; }
-.panel-header { padding: 24px 24px 16px; }
-.panel-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.panel-sub { font-size: 13px; color: var(--sub); }
 </style>
 </head>
 <body>
@@ -283,7 +187,7 @@
 
   <div class="masthead">
     <div class="masthead-left">
-      <p class="eyebrow">Family Mutual Fund Ledger</p>
+      <p class="eyebrow">Family mutual fund ledger</p>
       <h1>Daga Family Portfolio</h1>
     </div>
     <div class="masthead-right">
@@ -291,7 +195,7 @@
       <div class="lastUpdated" id="lastUpdated"></div>
       <div id="mastheadSub">3 members</div>
       <button id="refreshBtn" onclick="triggerGitHubUpdate()" title="Trigger monthly update on GitHub">
-        🔄 Refresh Portfolio
+        Refresh portfolio
       </button>
       <div id="refreshStatus"></div>
     </div>
@@ -322,68 +226,62 @@ const ACTIVE_SIPS = [{"person": "Daksh", "scheme": "Mirae Asset Large Cap Fund -
 const inr = (n, decimals=0) => '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits: decimals, minimumFractionDigits: decimals});
 const pct = (n) => (n>=0?'+':'') + n.toFixed(2) + '%';
 
+function signedInr(n){ return (n>=0?'+':'−') + inr(Math.abs(n)); }
+function pct1(n){ return (n<0?'−':'') + Math.abs(n).toFixed(1) + '%'; }
+function tone(n){ return n>=0 ? 'pos' : 'neg'; }
+
 function renderFamilyStrip(){
-  const people = Object.keys(DATA);
-  let totalInvested = 0, totalCurrent = 0, activeCount = 0;
-  people.forEach(p => {
-    if(DATA[p]){
-      totalInvested += DATA[p].total_invested;
-      totalCurrent += DATA[p].total_current_value;
-      activeCount++;
-    }
-  });
+  const people = Object.keys(DATA).filter(p => DATA[p]);
+  const totalInvested = people.reduce((a,p)=>a+DATA[p].total_invested,0);
+  const totalCurrent  = people.reduce((a,p)=>a+DATA[p].total_current_value,0);
   const gain = totalCurrent - totalInvested;
   const absRet = totalInvested ? (gain/totalInvested*100) : 0;
-  const benchKnown = people.every(p => !DATA[p] || typeof DATA[p].total_benchmark_value === 'number');
-  const totalBench = benchKnown ? people.reduce((a,p)=>a+(DATA[p]?DATA[p].total_benchmark_value:0),0) : null;
+  const holdings = people.reduce((a,p)=>a+DATA[p].schemes.length,0);
+  const benchKnown = people.every(p => typeof DATA[p].total_benchmark_value === 'number');
+  const totalBench = benchKnown ? people.reduce((a,p)=>a+DATA[p].total_benchmark_value,0) : null;
   const vsIndex = benchKnown ? totalCurrent - totalBench : null;
 
-  const html = `
+  const el = document.getElementById('familyStrip');
+  el.className = 'family-strip summary';
+  el.innerHTML = `
     <div>
-      <div class="fs-label">Family Invested</div>
-      <div class="fs-value">${inr(totalInvested)}</div>
-      <div class="fs-sub" style="color:var(--muted)">${activeCount} of ${people.length} members tracked</div>
+      <div class="s-label">Family invested</div>
+      <div class="s-value num">${inr(totalInvested)}</div>
+      <div class="s-sub">${holdings} holdings, ${people.length} members</div>
     </div>
     <div>
-      <div class="fs-label">Family Current Value</div>
-      <div class="fs-value">${inr(totalCurrent)}</div>
-      <div class="fs-sub ${gain>=0?'pos':'neg'}">${gain>=0?'+':''}${inr(gain)} overall</div>
+      <div class="s-label">Family current value</div>
+      <div class="s-value num">${inr(totalCurrent)}</div>
+      <div class="s-sub">as on ${formatDate(people.map(p=>DATA[p].as_of).sort().reverse()[0])}</div>
     </div>
     <div>
-      <div class="fs-label">Absolute Return</div>
-      <div class="fs-value ${absRet>=0?'pos':'neg'}">${pct(absRet)}</div>
-      <div class="fs-sub" style="color:var(--muted)">since each fund's start date</div>
+      <div class="s-label">Gain</div>
+      <div class="s-value num ${tone(gain)}">${signedInr(gain)}</div>
+      <div class="s-sub">${pct1(absRet)} on the money invested</div>
     </div>
     ${benchKnown ? `
     <div>
-      <div class="fs-label">Vs Index Funds</div>
-      <div class="fs-value ${vsIndex>=0?'pos':'neg'}">${vsIndex>=0?'+':'\u2212'}${inr(Math.abs(vsIndex))}</div>
-      <div class="fs-sub" style="color:var(--muted)">same money in index funds: ${inr(totalBench)}</div>
+      <div class="s-label">Compared with index funds</div>
+      <div class="s-value num ${tone(vsIndex)}">${signedInr(vsIndex)}</div>
+      <div class="s-sub">the same money in index funds would be ${inr(totalBench)}</div>
     </div>` : `
     <div>
-      <div class="fs-label">Holdings Tracked</div>
-      <div class="fs-value">${people.reduce((a,p)=>a+(DATA[p]?DATA[p].schemes.length:0),0)}</div>
-      <div class="fs-sub" style="color:var(--muted)">across ${activeCount} member${activeCount===1?'':'s'}</div>
+      <div class="s-label">Holdings</div>
+      <div class="s-value num">${holdings}</div>
+      <div class="s-sub">across ${people.length} members</div>
     </div>`}
   `;
-  document.getElementById('familyStrip').innerHTML = html;
 }
 
 function renderTabs(){
   const people = Object.keys(DATA);
   const tabsEl = document.getElementById('tabs');
   const personTabs = people.map((p,i) => `
-    <button class="tab ${i===0?'active':''} ${DATA[p]?'has-data':'placeholder'}" data-tab="person" data-person="${p}">
-      <span class="dot"></span>${p}
-    </button>
+    <button class="tab ${i===0?'active':''}" data-tab="person" data-person="${p}">${p}</button>
   `).join('');
   const specialTabs = `
-    <button class="tab has-data" data-tab="active-sips" style="margin-left:12px;">
-      📋 Active SIPs
-    </button>
-    <button class="tab has-data" data-tab="recent-updates">
-      🔄 Recent Updates
-    </button>
+    <button class="tab gap" data-tab="active-sips">Active SIPs</button>
+    <button class="tab" data-tab="recent-updates">Recent updates</button>
   `;
   tabsEl.innerHTML = personTabs + specialTabs;
   tabsEl.querySelectorAll('.tab').forEach(btn => {
@@ -392,73 +290,81 @@ function renderTabs(){
       btn.classList.add('active');
       document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
       const tabType = btn.dataset.tab;
-      if(tabType === 'person'){
-        document.getElementById('panel-'+btn.dataset.person).classList.add('active');
-      } else if(tabType === 'active-sips'){
-        document.getElementById('panel-active-sips').classList.add('active');
-      } else if(tabType === 'recent-updates'){
-        document.getElementById('panel-recent-updates').classList.add('active');
-      }
+      const id = tabType === 'person' ? 'panel-'+btn.dataset.person : 'panel-'+tabType;
+      document.getElementById(id).classList.add('active');
     });
   });
 }
 
-function benchLine(s){
-  if(typeof s.benchmark_xirr_pct !== 'number'){
-    return s.category && s.category.indexOf('Index') !== -1
-      ? `<div class="card-bench"><span>Index fund &middot; nothing to compare against</span></div>`
-      : '';
+/* "UTI Flexi Cap Fund - Direct Plan Growth" -> name "UTI Flexi Cap Fund", plan "Direct plan" */
+function schemeName(s){
+  return s.scheme
+    .replace(/\s*\(Lock-In\)/i,'')
+    .replace(/\s*-\s*Growth\s*\(Regular Plan\)/i,'')
+    .replace(/\s*-\s*(Direct|Regular) Plan( Growth)?/i,'')
+    .trim();
+}
+function schemeKind(s){
+  const plan = /direct/i.test(s.scheme) ? 'direct plan' : 'regular plan';
+  const parts = (s.category || '').split(' - ');
+  let kind = (parts.pop() || '').replace('/Lock-in',', lock-in');
+  kind = kind.charAt(0) + kind.slice(1).toLowerCase();
+  if(parts[0] === 'Hybrid') kind += ' hybrid';
+  return (kind ? kind + ' fund, ' : '') + plan;
+}
+
+function returnsBlock(s){
+  const hasIndex = typeof s.benchmark_xirr_pct === 'number';
+  const fund = `
+        <div>
+          <div class="r-value num ${s.xirr_pct>=0?'up':'down'}">${pct1(s.xirr_pct)}</div>
+          <div class="c-label">This fund</div>
+        </div>`;
+  if(!hasIndex){
+    return `
+      <div class="card-returns">
+        <div class="c-label r-title">XIRR</div>${fund}
+      </div>
+      <p class="verdict none">This is an index fund, so there is no index to compare it with.</p>`;
   }
-  const diff = s.xirr_pct - s.benchmark_xirr_pct;
-  const ahead = diff >= 0;
+  const money = s.current_value - s.benchmark_value;
+  const ahead = money >= 0;
   return `
-      <div class="card-bench" title="The same amounts on the same dates in a ${s.benchmark} index fund would be worth ${inr(s.benchmark_value)} today.">
-        <span>${s.benchmark} index fund: ${pct(s.benchmark_xirr_pct)} &middot; ${inr(s.benchmark_value)}</span>
-        <span class="b-verdict ${ahead?'ahead':'behind'}">${ahead?'Ahead':'Behind'} by ${Math.abs(diff).toFixed(1)} pts</span>
-      </div>`;
+      <div class="card-returns">
+        <div class="c-label r-title">XIRR</div>${fund}
+        <div>
+          <div class="r-value num">${pct1(s.benchmark_xirr_pct)}</div>
+          <div class="c-label">${s.benchmark} index fund</div>
+        </div>
+      </div>
+      <p class="verdict ${ahead?'ahead':'behind'}">${ahead?'Ahead of':'Behind'} the index fund by ${inr(Math.abs(money))}
+        <span>It would be worth ${inr(s.benchmark_value)} today.</span></p>`;
 }
 
 function schemeCard(s){
   const isLive = s.status === 'live';
+  const gain = s.current_value + (s.redeemed || 0) - s.invested;
   const sipLine = isLive
-    ? `₹${s.sip_amount.toLocaleString('en-IN')}/mo &middot; ${ordinal(s.sip_day)} of every month`
+    ? `<b>₹${s.sip_amount.toLocaleString('en-IN')}</b> on the ${ordinal(s.sip_day)} of every month`
     : s.status_label;
   return `
-    <div class="card">
-      <div class="card-body">
-        <div class="card-top">
-          <div>
-            <div class="card-amc">${s.amc} &middot; ${s.category}</div>
-            <div class="card-scheme">${s.scheme.replace(' - Direct Plan Growth','').replace(' - Direct Plan',' (Direct)')}</div>
-          </div>
-          <span class="badge ${isLive?'live':'closed'}">${isLive?'Live SIP':'Closed'}</span>
+    <article class="card">
+      <header class="card-head">
+        <div>
+          <h3 class="card-name">${schemeName(s)}</h3>
+          <p class="card-kind">${schemeKind(s)}</p>
         </div>
-        <div class="card-figs">
-          <div class="fig">
-            <div class="f-label">Invested</div>
-            <div class="f-value small">${inr(s.invested)}</div>
-          </div>
-          <div class="fig">
-            <div class="f-label">Current Value</div>
-            <div class="f-value">${inr(s.current_value)}</div>
-          </div>
-        </div>
+        <span class="badge ${isLive?'live':'closed'}">${isLive?'SIP running':'No SIP'}</span>
+      </header>
+      <div class="card-money">
+        <div class="c-label">Current value</div>
+        <div class="c-value num">${inr(s.current_value)}</div>
+        <div class="c-line">Invested <b>${inr(s.invested)}</b>${s.redeemed ? `, withdrawn <b>${inr(s.redeemed)}</b>` : ''}</div>
+        <div class="c-line">Gain <b class="${gain>=0?'up':'down'}">${signedInr(gain)}</b> (${pct1(s.abs_return_pct)})</div>
       </div>
-      <div class="card-divider"></div>
-      <div class="card-foot">
-        <div class="sip-info">${sipLine}</div>
-        <div class="return-pair">
-          <div class="r-item">
-            <div class="r-label">ABS. RET.</div>
-            <div class="r-value" style="color:${s.abs_return_pct>=0?'var(--green)':'var(--red)'}">${pct(s.abs_return_pct)}</div>
-          </div>
-          <div class="r-item">
-            <div class="r-label">XIRR</div>
-            <div class="r-value" style="color:${s.xirr_pct>=0?'var(--green)':'var(--red)'}">${pct(s.xirr_pct)}</div>
-          </div>
-        </div>
-      </div>${benchLine(s)}
-    </div>
+      ${returnsBlock(s)}
+      <footer class="card-sip">${sipLine}</footer>
+    </article>
   `;
 }
 
@@ -477,41 +383,42 @@ function renderPanels(){
         <div class="panel ${i===0?'active':''}" id="panel-${p}">
           <div class="empty-panel">
             <div class="e-title">No statement uploaded yet for ${p}</div>
-            <div class="e-sub">Send ${p}'s CAMS/KFintech consolidated statement (or just the transaction list) and this tab will fill in with the same level of detail as Daksh's.</div>
+            <div class="e-sub">Send ${p}'s CAMS/KFintech consolidated statement (or just the transaction list) and this tab will fill in.</div>
           </div>
         </div>`;
     }
     const gain = d.total_current_value - d.total_invested;
+    const live = d.schemes.filter(s=>s.status==='live').length;
+    const hasIndex = typeof d.total_benchmark_xirr_pct === 'number';
     return `
       <div class="panel ${i===0?'active':''}" id="panel-${p}">
         <div class="person-head">
+          <h2>${p}'s holdings</h2>
+          <div class="meta">${d.schemes.length} funds, ${live} with a running SIP. Values as on ${formatDate(d.as_of)}.</div>
+        </div>
+        <div class="summary person-summary ${hasIndex?'five':''}">
           <div>
-            <h2>${p}'s Holdings</h2>
-            <div class="meta">${d.schemes.length} schemes &middot; ${d.schemes.filter(s=>s.status==='live').length} live SIPs &middot; as on ${formatDate(d.as_of)}</div>
+            <div class="s-label">Invested</div>
+            <div class="s-value num">${inr(d.total_invested)}</div>
           </div>
-          <div class="totals-row">
-            <div class="total-item">
-              <div class="t-label">Invested</div>
-              <div class="t-value">${inr(d.total_invested)}</div>
-            </div>
-            <div class="total-item">
-              <div class="t-label">Current Value</div>
-              <div class="t-value">${inr(d.total_current_value)}</div>
-            </div>
-            <div class="total-item">
-              <div class="t-label">Gain</div>
-              <div class="t-value" style="color:${gain>=0?'#8fc9a8':'#e0a392'}">${gain>=0?'+':''}${inr(gain)}</div>
-            </div>
-            <div class="total-item">
-              <div class="t-label">XIRR (Blended)</div>
-              <div class="t-value" style="color:${d.total_xirr_pct>=0?'#8fc9a8':'#e0a392'}">${pct(d.total_xirr_pct)}</div>
-            </div>
-            ${typeof d.total_benchmark_xirr_pct === 'number' ? `
-            <div class="total-item" title="The same amounts on the same dates in matching index funds would be worth ${inr(d.total_benchmark_value)} today.">
-              <div class="t-label">Index Funds XIRR</div>
-              <div class="t-value">${pct(d.total_benchmark_xirr_pct)}</div>
-            </div>` : ''}
+          <div>
+            <div class="s-label">Current value</div>
+            <div class="s-value num">${inr(d.total_current_value)}</div>
           </div>
+          <div>
+            <div class="s-label">Gain</div>
+            <div class="s-value num ${tone(gain)}">${signedInr(gain)}</div>
+          </div>
+          <div>
+            <div class="s-label">XIRR</div>
+            <div class="s-value num ${tone(d.total_xirr_pct)}">${pct1(d.total_xirr_pct)}</div>
+          </div>
+          ${hasIndex ? `
+          <div>
+            <div class="s-label">Index funds, XIRR</div>
+            <div class="s-value num">${pct1(d.total_benchmark_xirr_pct)}</div>
+            <div class="s-sub">would be ${inr(d.total_benchmark_value)}</div>
+          </div>` : ''}
         </div>
         <div class="holdings">
           ${d.schemes.map(schemeCard).join('')}
@@ -544,7 +451,7 @@ function renderActiveSips(){
     <div class="panel-header">
       <div class="panel-title">Active SIPs</div>
       <div class="panel-sub">
-        ${ACTIVE_SIPS.length} active SIPs &middot; Total ₹${totalAmt.toLocaleString('en-IN')}/month
+        ${ACTIVE_SIPS.length} SIPs running, ₹${totalAmt.toLocaleString('en-IN')} a month in total
       </div>
     </div>
     ${people.map(p => {
@@ -555,15 +462,15 @@ function renderActiveSips(){
         <div class="sip-section">
           <div class="sip-section-header">
             <span class="sip-person">${p}</span>
-            <span class="sip-person-total">₹${personTotal.toLocaleString('en-IN')}/month</span>
+            <span class="sip-person-total">₹${personTotal.toLocaleString('en-IN')} a month</span>
           </div>
-          <table class="sip-table">
+          <div class="table-scroll"><table class="sip-table">
             <thead>
               <tr>
                 <th>Fund</th>
-                <th style="text-align:center">SIP Date</th>
+                <th style="text-align:center">SIP date</th>
                 <th style="text-align:right">Amount</th>
-                <th style="text-align:center">Next Due</th>
+                <th style="text-align:center">Next due</th>
               </tr>
             </thead>
             <tbody>
@@ -581,7 +488,7 @@ function renderActiveSips(){
                 </tr>`;
               }).join('')}
             </tbody>
-          </table>
+          </table></div>
         </div>
       `;
     }).join('')}
@@ -609,7 +516,7 @@ function renderRecentUpdates(){
 
   wrap.innerHTML = `
     <div class="panel-header">
-      <div class="panel-title">Recent Updates</div>
+      <div class="panel-title">Recent updates</div>
       <div class="panel-sub">${RECENT_TXNS.length} transactions across ${sortedRuns.length} update run${sortedRuns.length>1?'s':''}</div>
     </div>
     ${sortedRuns.map(runDate => {
@@ -618,16 +525,16 @@ function renderRecentUpdates(){
       return `
         <div class="run-section">
           <div class="run-header">
-            <span class="run-date">Update run: ${formatDate(runDate)}</span>
-            <span class="run-summary">${txns.length} transaction${txns.length>1?'s':''} &middot; ₹${Math.round(totalAmt).toLocaleString('en-IN')} invested</span>
+            <span class="run-date">Added on ${formatDate(runDate)}</span>
+            <span class="run-summary">${txns.length} transaction${txns.length>1?'s':''}, ₹${Math.round(totalAmt).toLocaleString('en-IN')} invested</span>
           </div>
-          <table class="sip-table">
+          <div class="table-scroll"><table class="sip-table">
             <thead>
               <tr>
                 <th>Person</th>
                 <th>Fund</th>
                 <th style="text-align:center">Type</th>
-                <th style="text-align:center">Due Date</th>
+                <th style="text-align:center">Due date</th>
                 <th style="text-align:center">Allotment</th>
                 <th style="text-align:right">NAV</th>
                 <th style="text-align:right">Units</th>
@@ -651,7 +558,7 @@ function renderRecentUpdates(){
                 </tr>`;
               }).join('')}
             </tbody>
-          </table>
+          </table></div>
         </div>
       `;
     }).join('')}
@@ -698,7 +605,7 @@ renderPanels();
     document.getElementById('lastUpdated').textContent = 'Last updated ' + luStr;
   }
 
-  document.getElementById('mastheadSub').textContent = `${people.length} members \u00b7 ${totalFolios} schemes tracked`;
+  document.getElementById('mastheadSub').textContent = `${people.length} members, ${totalFolios} funds`;
 })();
 
 // ── GitHub Actions Trigger ────────────────────────────────────────────────
@@ -730,7 +637,7 @@ async function triggerGitHubUpdate() {
     );
     if (!token || !token.trim()) {
       status.textContent = "Cancelled — no token provided.";
-      status.style.color = "var(--sub)";
+      status.style.color = "var(--on-ink-soft)";
       return;
     }
     token = token.trim();
@@ -740,7 +647,7 @@ async function triggerGitHubUpdate() {
   btn.disabled = true;
   btn.textContent = "⏳ Triggering...";
   status.textContent = "";
-  status.style.color = "var(--sub)";
+  status.style.color = "var(--on-ink-soft)";
 
   try {
     const resp = await fetch(
@@ -762,7 +669,7 @@ async function triggerGitHubUpdate() {
       status.textContent = "Update job started on GitHub. Takes ~1 min. Reload page after.";
       status.style.color = "#8fc9a8";
       setTimeout(() => {
-        btn.textContent = "🔄 Refresh Portfolio";
+        btn.textContent = "Refresh portfolio";
         btn.disabled = false;
         status.textContent = "";
       }, 10000);
@@ -782,7 +689,7 @@ async function triggerGitHubUpdate() {
     status.style.color = "#e07b7b";
     btn.disabled = false;
     setTimeout(() => {
-      btn.textContent = "🔄 Refresh Portfolio";
+      btn.textContent = "Refresh portfolio";
       status.textContent = "";
     }, 10000);
   }
